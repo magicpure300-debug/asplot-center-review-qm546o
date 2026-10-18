@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from models import db, Usuario, Cliente, Proyecto, TipoPlano, Plano, Material, Inventario, Factura, DetalleFactura
+from sqlalchemy.orm import selectinload, joinedload  # Sprint 2 - PB-04 (evitar N+1)
 from config import config
 import os
 from datetime import datetime, date
@@ -181,9 +182,16 @@ def create_app():
             return render_template('dashboard_cliente.html', mis_proyectos=mis_proyectos)
         
         # Dashboard de administrador/trabajador
-        total_clientes = Cliente.query.count()
-        total_proyectos = Proyecto.query.count()
-        total_planos = Plano.query.count()
+        # (Sprint 2 - PB-04) Conteos consolidados en UNA sola consulta
+        # (UNION ALL), en lugar de 3 consultas independientes a la BD.
+        filas_conteo = db.session.query(
+            db.func.count(Cliente.id_cliente)
+        ).union_all(
+            db.session.query(db.func.count(Proyecto.id_proyecto))
+        ).union_all(
+            db.session.query(db.func.count(Plano.id_plano))
+        ).all()
+        total_clientes, total_proyectos, total_planos = (f[0] for f in filas_conteo)
         
         # Calcular total de insumos (suma de cantidades)
         total_insumos = db.session.query(db.func.sum(Inventario.cantidad)).scalar() or 0
@@ -194,7 +202,11 @@ def create_app():
         ).scalar() or 0
         
         # Obtener proyectos recientes (ordenados por fecha_solicitud)
-        proyectos_recientes = Proyecto.query.order_by(
+        # (Sprint 2 - PB-04) selectinload evita el patrón N+1 al acceder
+        # a proyecto.cliente en la plantilla (1 consulta extra en vez de 5).
+        proyectos_recientes = Proyecto.query.options(
+            selectinload(Proyecto.cliente)
+        ).order_by(
             Proyecto.fecha_solicitud.desc()
         ).limit(5).all()
         
@@ -313,13 +325,23 @@ def create_app():
             if search:
                 query = query.filter(Proyecto.nombre_proyecto.contains(search))
         
-            proyectos = query.order_by(Proyecto.fecha_solicitud.desc()).all()
+            # (Sprint 2 - PB-04) selectinload precarga el cliente de cada
+            # proyecto: la plantilla accede a proyecto.cliente.nombre_completo
+            # y sin esto se disparaba una consulta por fila (N+1).
+            proyectos = query.options(
+                selectinload(Proyecto.cliente)
+            ).order_by(Proyecto.fecha_solicitud.desc()).all()
         
-            # Contar solicitudes por estado
-            pendientes_count = Proyecto.query.filter_by(estado='solicitado').count()
-            cotizados_count = Proyecto.query.filter_by(estado='cotizado').count()
-            aprobados_count = Proyecto.query.filter_by(estado='aprobado').count()
-            en_progreso_count = Proyecto.query.filter_by(estado='en_progreso').count()
+            # (Sprint 2 - PB-04) Conteos por estado en UNA sola consulta
+            # con GROUP BY, en lugar de 4 consultas count() separadas.
+            conteos_filas = db.session.query(
+                Proyecto.estado, db.func.count(Proyecto.id_proyecto)
+            ).group_by(Proyecto.estado).all()
+            conteos_por_estado = dict(conteos_filas)
+            pendientes_count = conteos_por_estado.get('solicitado', 0)
+            cotizados_count = conteos_por_estado.get('cotizado', 0)
+            aprobados_count = conteos_por_estado.get('aprobado', 0)
+            en_progreso_count = conteos_por_estado.get('en_progreso', 0)
         
             return render_template('proyectos_admin.html',
                                  proyectos=proyectos,
@@ -631,7 +653,12 @@ def create_app():
         if tipo:
             query = query.join(TipoPlano).filter(TipoPlano.id_tipo_plano == tipo)
         
-        planos = query.all()
+        # (Sprint 2 - PB-04) Precarga de relaciones: la plantilla accede a
+        # plano.proyecto y plano.tipo_plano por fila (N+1 sin esto).
+        planos = query.options(
+            selectinload(Plano.proyecto),
+            selectinload(Plano.tipo_plano),
+        ).all()
         tipos_plano = TipoPlano.query.all()
         
         return render_template('planos.html', planos=planos, tipos_plano=tipos_plano, search=search, tipo=tipo)
@@ -794,7 +821,19 @@ def create_app():
             fecha_hasta_obj = datetime.strptime(fecha_hasta, '%Y-%m-%d')
             query = query.filter(Plano.fecha_subida <= fecha_hasta_obj)
         
-        planos = query.all()
+        # (Sprint 2 - PB-04) Paginación: antes se cargaba el histórico
+        # completo de planos en memoria; ahora se pagina con limit/offset
+        # sobre el motor de BD (aprovecha los índices ix_planos_*).
+        por_pagina = 20
+        total_planos = query.count()
+        total_paginas = max(1, -(-total_planos // por_pagina))  # techo
+        pagina = request.args.get('pagina', 1, type=int)
+        pagina = max(1, min(pagina, total_paginas))
+        
+        planos = query.options(
+            selectinload(Plano.proyecto).selectinload(Proyecto.cliente),
+            selectinload(Plano.tipo_plano),
+        ).limit(por_pagina).offset((pagina - 1) * por_pagina).all()
         tipos_plano = TipoPlano.query.all()
         
         return render_template('buscar_planos.html', 
@@ -804,7 +843,10 @@ def create_app():
                              proyecto=proyecto,
                              tipo=tipo,
                              fecha_desde=fecha_desde,
-                             fecha_hasta=fecha_hasta)
+                             fecha_hasta=fecha_hasta,
+                             pagina=pagina,
+                             total_paginas=total_paginas,
+                             total_planos=total_planos)
     
     # Gestión de Inventario
     @app.route('/inventario')
@@ -826,9 +868,11 @@ def create_app():
         if categoria:
             query = query.filter(Material.categoria == categoria)
         
-        inventarios = query.all()
-        
-        # Obtener materiales con stock bajo
+        # (Sprint 2 - PB-04) selectinload precarga material por fila:
+        # inventario.html accede a inventario.material.* 7 veces por registro.
+        inventarios = query.options(
+            selectinload(Inventario.material)
+        ).all()# Obtener materiales con stock bajo
         materiales_bajo_stock = Inventario.query.join(Material).filter(
             Inventario.cantidad <= Material.stock_minimo
         ).all()
@@ -973,7 +1017,14 @@ def create_app():
         if estado:
             query = query.filter(Factura.estado_pago == estado)
         
-        facturas = query.order_by(Factura.fecha_factura.desc()).all()
+        # (Sprint 2 - PB-04) Precarga de cliente y proyecto para la plantilla
+        # (facturas.html y ver_factura.html acceden a factura.cliente/proyecto).
+        facturas = query.options(
+            selectinload(Factura.cliente),
+            selectinload(Factura.proyecto),
+            selectinload(Factura.usuario),
+            selectinload(Factura.detalles),
+        ).order_by(Factura.fecha_factura.desc()).all()
         
         return render_template('facturas.html', facturas=facturas, search=search, estado=estado)
     

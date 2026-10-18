@@ -21,6 +21,12 @@ class Usuario(UserMixin, db.Model):
     activo = db.Column(db.Boolean, default=True)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Índices (Sprint 2 - PB-05): búsquedas por email y filtrado por rol en login/menu
+    __table_args__ = (
+        db.Index('ix_usuarios_rol', 'rol'),
+        db.Index('ix_usuarios_activo', 'activo'),
+    )
+    
     # Relaciones
     planos = db.relationship('Plano', backref='usuario', lazy=True)
     facturas = db.relationship('Factura', backref='usuario', lazy=True)
@@ -66,6 +72,12 @@ class Cliente(db.Model):
     # Vinculación opcional con usuario (para clientes que tienen cuenta)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id_usuario'), nullable=True)
     
+    # Índices (Sprint 2 - PB-05): FK usada en JOINs y búsquedas por nombre/apellido
+    __table_args__ = (
+        db.Index('ix_clientes_id_usuario', 'id_usuario'),
+        db.Index('ix_clientes_nombre_apellido', 'nombre', 'apellido'),
+    )
+    
     # Relaciones
     proyectos = db.relationship('Proyecto', backref='cliente', lazy=True)
     facturas = db.relationship('Factura', backref='cliente', lazy=True)
@@ -108,6 +120,16 @@ class Proyecto(db.Model):
     # Notas adicionales del admin o cliente
     notas = db.Column(db.Text, nullable=True)
     
+    # Índices (Sprint 2 - PB-05): tablero por estado, orden por fecha,
+    # listado por cliente y filtros del portafolio (tipo_servicio, presupuesto)
+    __table_args__ = (
+        db.Index('ix_proyectos_id_cliente', 'id_cliente'),
+        db.Index('ix_proyectos_estado', 'estado'),
+        db.Index('ix_proyectos_fecha_solicitud', 'fecha_solicitud'),
+        db.Index('ix_proyectos_tipo_servicio', 'tipo_servicio'),
+        db.Index('ix_proyectos_estado_tipo', 'estado', 'tipo_servicio'),
+    )
+    
     # Relaciones
     planos = db.relationship('Plano', backref='proyecto', lazy=True)
     facturas = db.relationship('Factura', backref='proyecto', lazy=True)
@@ -141,6 +163,14 @@ class Plano(db.Model):
     archivo = db.Column(db.String(255), nullable=False)
     fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Índices (Sprint 2 - PB-05): JOINs de listados y búsqueda por fechas/tipo
+    __table_args__ = (
+        db.Index('ix_planos_id_proyecto', 'id_proyecto'),
+        db.Index('ix_planos_id_tipo_plano', 'id_tipo_plano'),
+        db.Index('ix_planos_id_usuario', 'id_usuario'),
+        db.Index('ix_planos_fecha_subida', 'fecha_subida'),
+    )
+    
     # Relaciones
     detalle_facturas = db.relationship('DetalleFactura', backref='plano', lazy=True)
     
@@ -159,6 +189,12 @@ class Material(db.Model):
     # Subcategoría para papeles: 'A0', 'A1', 'A2', 'A3', 'A4'
     # Subcategoría para tintas: 'negro', 'color', 'cyan', 'magenta', 'amarillo'
     subcategoria = db.Column(db.String(50))
+    
+    # Índices (Sprint 2 - PB-05): filtros de categorías del inventario
+    __table_args__ = (
+        db.Index('ix_materiales_categoria', 'categoria'),
+        db.Index('ix_materiales_activo', 'activo'),
+    )
     precio_unitario = db.Column(db.Numeric(10, 2), nullable=False)
     precio_compra = db.Column(db.Numeric(10, 2), default=0.0)
     unidad_medida = db.Column(db.String(20), default='unidad')
@@ -181,6 +217,11 @@ class Inventario(db.Model):
     cantidad = db.Column(db.Integer, nullable=False, default=0)
     fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     ubicacion = db.Column(db.String(100))
+    
+    # Índices (Sprint 2 - PB-05): JOIN con materiales en el listado de inventario
+    __table_args__ = (
+        db.Index('ix_inventario_id_material', 'id_material'),
+    )
     
     @property
     def necesita_reposicion(self):
@@ -224,6 +265,14 @@ class Factura(db.Model):
     
     notas = db.Column(db.Text)
     
+    # Índices (Sprint 2 - PB-05): reportes financieros por fecha y estado de pago
+    __table_args__ = (
+        db.Index('ix_facturas_id_proyecto', 'id_proyecto'),
+        db.Index('ix_facturas_id_cliente', 'id_cliente'),
+        db.Index('ix_facturas_fecha_factura', 'fecha_factura'),
+        db.Index('ix_facturas_estado_pago', 'estado_pago'),
+    )
+    
     # Relaciones
     detalles = db.relationship('DetalleFactura', backref='factura', lazy=True, cascade='all, delete-orphan')
     
@@ -248,6 +297,13 @@ class DetalleFactura(db.Model):
     cantidad = db.Column(db.Integer, nullable=False)
     precio_unitario = db.Column(db.Numeric(10, 2), nullable=False)
     descuento = db.Column(db.Numeric(10, 2), default=0.0)
+    
+    # Índices (Sprint 2 - PB-05): agregaciones de factura, planos y materiales vendidos
+    __table_args__ = (
+        db.Index('ix_detalle_facturas_id_factura', 'id_factura'),
+        db.Index('ix_detalle_facturas_id_plano', 'id_plano'),
+        db.Index('ix_detalle_facturas_id_material', 'id_material'),
+    )
     
     @property
     def subtotal(self):

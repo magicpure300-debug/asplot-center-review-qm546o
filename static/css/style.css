@@ -1124,3 +1124,43 @@ body {
         gap: 1rem;
     }
 }
+/* ==========================================================================
+   Paginación de resultados (Sprint 2 - PB-04)
+   ========================================================================== */
+.pagination-nav {
+    margin: 24px 0 8px;
+    text-align: center;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pagination-controls .btn,
+.pagination-controls .pagination-current {
+    min-width: 38px;
+    text-align: center;
+}
+
+.pagination-current {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: #2e7d32;
+    color: #fff;
+    font-weight: 600;
+}
+
+.pagination-page:hover {
+    text-decoration: none;
+}

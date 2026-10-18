@@ -73,7 +73,7 @@
 <!-- Resultados de búsqueda -->
 {% if query or tipo or proyecto or fecha_desde or fecha_hasta %}
 <div class="search-results">
-    <h3>Resultados de Búsqueda ({{ planos|length }} planos encontrados)</h3>
+    <h3>Resultados de Búsqueda ({{ total_planos }} planos encontrados)</h3>
     
     {% if planos %}
     <div class="plans-grid">
@@ -133,6 +133,40 @@
         </div>
         {% endfor %}
     </div>
+    
+    <!-- Paginación (Sprint 2 - PB-04) -->
+    {% if total_paginas > 1 %}
+    <nav class="pagination-nav" aria-label="Paginación de resultados">
+        <p class="pagination-info">
+            Página {{ pagina }} de {{ total_paginas }} · {{ total_planos }} planos en total
+        </p>
+        <div class="pagination-controls">
+            {% if pagina > 1 %}
+            <a class="btn btn-sm btn-secondary"
+               href="{{ url_for('buscar_planos', pagina=pagina-1, nombre=nombre, proyecto=proyecto, tipo=tipo, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">
+                <i class="fas fa-chevron-left"></i> Anterior
+            </a>
+            {% endif %}
+
+            {% for p in range(1, total_paginas + 1) %}
+                {% if p == pagina %}
+                <span class="pagination-current">{{ p }}</span>
+                {% else %}
+                <a class="btn btn-sm btn-secondary pagination-page"
+                   href="{{ url_for('buscar_planos', pagina=p, nombre=nombre, proyecto=proyecto, tipo=tipo, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagina < total_paginas %}
+            <a class="btn btn-sm btn-secondary"
+               href="{{ url_for('buscar_planos', pagina=pagina+1, nombre=nombre, proyecto=proyecto, tipo=tipo, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta) }}">
+                Siguiente <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+    {% endif %}
+
     {% else %}
     <div class="no-data">
         <i class="fas fa-search"></i>
