@@ -107,9 +107,7 @@ Programa Asplot/
 5. **Acceder a la aplicación**
    - Abrir navegador web
    - Ir a: `http://localhost:5000`
-   - Usar las credenciales por defecto:
-     - **Email**: admin@asplot.com
-     - **Contraseña**: admin123
+   - Ingresar con tu usuario y contraseña (las credenciales iniciales se crean en el primer arranque y no se documentan por seguridad)
 
 ## Uso del Sistema
 
