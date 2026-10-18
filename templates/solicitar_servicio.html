@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+
+{% block title %}Solicitar Servicio - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Solicitar Servicio</h1>
+    <p>Complete el formulario para solicitar un nuevo servicio</p>
+</div>
+
+<div class="form-container">
+    <form action="{{ url_for('solicitar_servicio') }}" method="POST" enctype="multipart/form-data" class="form"
+        id="solicitudForm">
+
+        <!-- Tipo de Servicio -->
+        <div class="form-group">
+            <label for="tipo_servicio">Tipo de Servicio *</label>
+            <select name="tipo_servicio" id="tipo_servicio" required>
+                <option value="">Seleccione un servicio...</option>
+                <option value="render">Render 3D</option>
+                <option value="topografia">Topografía</option>
+                <option value="plano">Elaboración de Plano</option>
+                <option value="correccion">Corrección de Plano</option>
+            </select>
+
+            <!-- Nota de Precio para Plano/Corrección -->
+            <div id="precioNota" class="precio-nota" style="display: none;">
+                <i class="fas fa-info-circle"></i>
+                <strong>Precio base:</strong> $15.00 USD
+                <span>(El precio final puede variar según la complejidad del trabajo)</span>
+            </div>
+        </div>
+
+        <!-- Nombre del Proyecto -->
+        <div class="form-group">
+            <label for="nombre_proyecto">Nombre del Proyecto *</label>
+            <input type="text" name="nombre_proyecto" id="nombre_proyecto" placeholder="Ej: Casa Moderna 2 Plantas"
+                required maxlength="100">
+        </div>
+
+        <!-- Descripción -->
+        <div class="form-group">
+            <label for="descripcion">Descripción del Proyecto *</label>
+            <textarea name="descripcion" id="descripcion" rows="5"
+                placeholder="Describa detalladamente lo que necesita..." required></textarea>
+            <small>Sea lo más específico posible: dimensiones, materiales, detalles especiales, etc.</small>
+        </div>
+
+        <!-- Archivo Adjunto -->
+        <div class="form-group">
+            <label for="archivo_solicitud">Archivo Adjunto (Opcional)</label>
+            <div class="file-upload-wrapper">
+                <input type="file" name="archivo_solicitud" id="archivo_solicitud" accept=".pdf,.dwg,.jpg,.jpeg,.png">
+                <div class="file-upload-info">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p><strong>Suba su boceto o referencia</strong></p>
+                    <p>Formatos aceptados: PDF, DWG, JPG, PNG</p>
+                    <p class="file-name" id="fileName"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="form-actions">
+            <a href="{{ url_for('proyectos') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+                Enviar Solicitud
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Estilos adicionales para este formulario -->
+<style>
+    .precio-nota {
+        margin-top: 0.75rem;
+        padding: 1rem;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        color: #856404;
+        font-size: 0.95rem;
+    }
+
+    .precio-nota i {
+        margin-right: 0.5rem;
+        color: #f39c12;
+    }
+
+    .precio-nota strong {
+        color: #20c997;
+        font-size: 1.1rem;
+    }
+
+    .precio-nota span {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        font-style: italic;
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .file-upload-wrapper:hover {
+        border-color: #20c997;
+        background: #f8f9fa;
+    }
+
+    .file-upload-wrapper input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-upload-info i {
+        font-size: 3rem;
+        color: #20c997;
+        margin-bottom: 1rem;
+    }
+
+    .file-upload-info p {
+        margin: 0.25rem 0;
+        color: #666;
+    }
+
+    .file-upload-info .file-name {
+        margin-top: 1rem;
+        font-weight: bold;
+        color: #20c997;
+    }
+
+    .form-group small {
+        display: block;
+        margin-top: 0.5rem;
+        color: #999;
+        font-size: 0.85rem;
+    }
+</style>
+
+<!-- Script para mostrar nota de precio y nombre de archivo -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tipoServicio = document.getElementById('tipo_servicio');
+        const precioNota = document.getElementById('precioNota');
+        const archivoInput = document.getElementById('archivo_solicitud');
+        const fileName = document.getElementById('fileName');
+
+        // Mostrar nota de precio según tipo de servicio
+        tipoServicio.addEventListener('change', function () {
+            const valor = this.value;
+            if (valor === 'plano' || valor === 'correccion') {
+                precioNota.style.display = 'block';
+            } else {
+                precioNota.style.display = 'none';
+            }
+        });
+
+        // Mostrar nombre de archivo seleccionado
+        archivoInput.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                fileName.textContent = '📎 ' + this.files[0].name;
+            } else {
+                fileName.textContent = '';
+            }
+        });
+    });
+</script>
+{% endblock %}

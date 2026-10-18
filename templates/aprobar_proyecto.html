@@ -1,0 +1,258 @@
+{% extends "layout.html" %}
+
+{% block title %}Cotizar Proyecto - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Cotizar Proyecto</h1>
+    <p>Establezca el presupuesto y fecha estimada para este servicio</p>
+</div>
+
+<!-- Información del Proyecto -->
+<div class="project-info-card">
+    <h2><i class="fas fa-folder"></i> {{ proyecto.nombre_proyecto }}</h2>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <label>Cliente:</label>
+            <span>{{ proyecto.cliente.nombre_completo }}</span>
+        </div>
+        <div class="info-item">
+            <label>Email:</label>
+            <span>{{ proyecto.cliente.email }}</span>
+        </div>
+        <div class="info-item">
+            <label>Tipo de Servicio:</label>
+            <span class="service-badge service-{{ proyecto.tipo_servicio }}">
+                {{ proyecto.tipo_servicio.upper() }}
+            </span>
+        </div>
+        <div class="info-item">
+            <label>Fecha Solicitud:</label>
+            <span>{{ proyecto.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}</span>
+        </div>
+    </div>
+
+    <div class="description-section">
+        <label><i class="fas fa-align-left"></i> Descripción del Proyecto:</label>
+        <p>{{ proyecto.descripcion }}</p>
+    </div>
+
+    {% if proyecto.archivo_solicitud %}
+    <div class="file-section">
+        <label><i class="fas fa-paperclip"></i> Archivo Adjunto:</label>
+        <a href="{{ url_for('static', filename='uploads/solicitudes/' + proyecto.archivo_solicitud) }}" download
+            class="btn btn-sm btn-secondary">
+            <i class="fas fa-download"></i>
+            Descargar: {{ proyecto.archivo_solicitud }}
+        </a>
+    </div>
+    {% endif %}
+
+    {% if precio_base > 0 %}
+    <div class="precio-base-info">
+        <i class="fas fa-info-circle"></i>
+        <strong>Precio Base Sugerido:</strong> ${{ "%.2f"|format(precio_base) }}
+        <span>(Puede ajustar según complejidad)</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Formulario de Cotización -->
+<div class="form-container">
+    <form action="{{ url_for('aprobar_proyecto', id=proyecto.id_proyecto) }}" method="POST" class="form">
+        <h3><i class="fas fa-calculator"></i> Información de Cotización</h3>
+
+        <!-- Presupuesto -->
+        <div class="form-group">
+            <label for="presupuesto">Presupuesto (USD) *</label>
+            <input type="number" name="presupuesto" id="presupuesto" step="0.01" min="0" {% if precio_base> 0
+            %}value="{{ precio_base }}"{% endif %}
+            placeholder="0.00"
+            required>
+            <small>Ingrese el precio final del servicio</small>
+        </div>
+
+        <!-- Fecha Estimada -->
+        <div class="form-group">
+            <label for="fecha_fin">Fecha de Entrega Estimada</label>
+            <input type="date" name="fecha_fin" id="fecha_fin" min="{{ fecha_hoy }}">
+            <small>Fecha estimada para completar el proyecto</small>
+        </div>
+
+        <!-- Notas -->
+        <div class="form-group">
+            <label for="notas">Notas para el Cliente</label>
+            <textarea name="notas" id="notas" rows="4"
+                placeholder="Detalles adicionales, condiciones, tiempos de pago, etc."></textarea>
+            <small>Información adicional que el cliente debe conocer</small>
+        </div>
+
+        <!-- Acciones -->
+        <div class="form-actions">
+            <a href="{{ url_for('proyectos') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i>
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-green btn-large">
+                <i class="fas fa-check-circle"></i>
+                Enviar Cotización
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Estilos adicionales -->
+<style>
+    .project-info-card {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .project-info-card h2 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .project-info-card h2 i {
+        color: #20c997;
+        margin-right: 0.5rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .info-item label {
+        font-weight: 600;
+        color: #666;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-item span {
+        color: #333;
+        font-size: 1rem;
+    }
+
+    .description-section,
+    .file-section {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .description-section label,
+    .file-section label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.75rem;
+    }
+
+    .description-section label i,
+    .file-section label i {
+        color: #20c997;
+        margin-right: 0.5rem;
+    }
+
+    .description-section p {
+        color: #666;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .precio-base-info {
+        padding: 1rem;
+        background: #e8f5e9;
+        border: 1px solid #a5d6a7;
+        border-radius: 8px;
+        color: #2e7d32;
+        font-size: 0.95rem;
+    }
+
+    .precio-base-info i {
+        margin-right: 0.5rem;
+        color: #4caf50;
+    }
+
+    .precio-base-info strong {
+        color: #1b5e20;
+        font-size: 1.1rem;
+    }
+
+    .precio-base-info span {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.85rem;
+        font-style: italic;
+        color: #558b2f;
+    }
+
+    .service-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .service-render {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .service-topografia {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .service-plano {
+        background: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .service-correccion {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .form-container h3 {
+        margin-bottom: 1.5rem;
+        color: #333;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .form-container h3 i {
+        color: #20c997;
+        margin-right: 0.5rem;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Establecer fecha mínima como hoy
+        const fechaInput = document.getElementById('fecha_fin');
+        const today = new Date().toISOString().split('T')[0];
+        fechaInput.setAttribute('min', today);
+    });
+</script>
+{% endblock %}

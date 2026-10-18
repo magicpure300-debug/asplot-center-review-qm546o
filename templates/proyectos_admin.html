@@ -1,0 +1,247 @@
+{% extends "layout.html" %}
+
+{% block title %}Gestión de Proyectos - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Solicitudes de Proyectos</h1>
+        <p>Gestiona las solicitudes de servicios de los clientes</p>
+    </div>
+</div>
+
+<!-- Filtros y estadísticas -->
+<div class="filters-section">
+    <div class="stats-row">
+        <div class="stat-item {% if estado_filter == 'solicitado' %}active{% endif %}">
+            <a href="{{ url_for('proyectos', estado='solicitado') }}">
+                <span class="stat-number">{{ pendientes_count }}</span>
+                <span class="stat-label">Pendientes</span>
+            </a>
+        </div>
+        <div class="stat-item {% if estado_filter == 'cotizado' %}active{% endif %}">
+            <a href="{{ url_for('proyectos', estado='cotizado') }}">
+                <span class="stat-number">{{ cotizados_count }}</span>
+                <span class="stat-label">Cotizados</span>
+            </a>
+        </div>
+        <div class="stat-item {% if estado_filter == 'aprobado' %}active{% endif %}">
+            <a href="{{ url_for('proyectos', estado='aprobado') }}">
+                <span class="stat-number">{{ aprobados_count }}</span>
+                <span class="stat-label">Aprobados</span>
+            </a>
+        </div>
+        <div class="stat-item {% if estado_filter == 'en_progreso' %}active{% endif %}">
+            <a href="{{ url_for('proyectos', estado='en_progreso') }}">
+                <span class="stat-number">{{ en_progreso_count }}</span>
+                <span class="stat-label">En Progreso</span>
+            </a>
+        </div>
+        <div class="stat-item {% if estado_filter == 'todas' %}active{% endif %}">
+            <a href="{{ url_for('proyectos', estado='todas') }}">
+                <span class="stat-label">Ver Todos</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Búsqueda -->
+    <div class="search-section">
+        <form action="{{ url_for('proyectos') }}" method="GET" class="search-form">
+            <input type="hidden" name="estado" value="{{ estado_filter }}">
+            <div class="search-input">
+                <i class="fas fa-search"></i>
+                <input type="text" name="search" placeholder="Buscar por nombre de proyecto..." value="{{ search }}">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-search"></i>
+                Buscar
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Lista de proyectos -->
+{% if proyectos %}
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Proyecto</th>
+                <th>Cliente</th>
+                <th>Tipo Servicio</th>
+                <th>Fecha Solicitud</th>
+                <th>Estado</th>
+                <th>Presupuesto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proyecto in proyectos %}
+            <tr>
+                <td>
+                    <div class="client-info">
+                        <strong>{{ proyecto.nombre_proyecto }}</strong>
+                        <span>{{ proyecto.descripcion[:50] }}...</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="client-info">
+                        <strong>{{ proyecto.cliente.nombre_completo }}</strong>
+                        <span>{{ proyecto.cliente.email }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="service-badge service-{{ proyecto.tipo_servicio }}">
+                        {{ proyecto.tipo_servicio.upper() }}
+                    </span>
+                </td>
+                <td>{{ proyecto.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                    <span class="status-badge status-{{ proyecto.estado }}">
+                        {{ proyecto.estado.replace('_', ' ').title() }}
+                    </span>
+                </td>
+                <td>
+                    {% if proyecto.presupuesto %}
+                    <strong>${{ "%.2f"|format(proyecto.presupuesto) }}</strong>
+                    {% else %}
+                    <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('detalle_proyecto', id=proyecto.id_proyecto) }}" class="btn btn-sm btn-blue"
+                            title="Ver Detalle">
+                            <i class="fas fa-eye"></i>
+                        </a>
+
+                        {% if proyecto.estado == 'solicitado' %}
+                        <a href="{{ url_for('aprobar_proyecto', id=proyecto.id_proyecto) }}"
+                            class="btn btn-sm btn-green" title="Cotizar">
+                            <i class="fas fa-dollar-sign"></i>
+                        </a>
+                        <form action="{{ url_for('rechazar_proyecto', id=proyecto.id_proyecto) }}" method="POST"
+                            style="display: inline;"
+                            onsubmit="return confirm('¿Está seguro de rechazar esta solicitud?')">
+                            <button type="submit" class="btn btn-sm btn-red" title="Rechazar">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
+                        {% elif proyecto.estado == 'aprobado' %}
+                        <form action="{{ url_for('iniciar_proyecto', id=proyecto.id_proyecto) }}" method="POST"
+                            style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-green" title="Iniciar Trabajo">
+                                <i class="fas fa-play"></i>
+                            </button>
+                        </form>
+                        {% elif proyecto.estado == 'en_progreso' %}
+                        <form action="{{ url_for('finalizar_proyecto', id=proyecto.id_proyecto) }}" method="POST"
+                            style="display: inline;"
+                            onsubmit="return confirm('¿Está seguro de finalizar este proyecto?')">
+                            <button type="submit" class="btn btn-sm btn-green" title="Finalizar">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="no-data">
+    <i class="fas fa-inbox"></i>
+    <h3>No hay proyectos {{ estado_filter if estado_filter != 'todas' else '' }}</h3>
+    <p>Los proyectos aparecerán aquí cuando los clientes realicen solicitudes</p>
+</div>
+{% endif %}
+
+<!-- Estilos adicionales -->
+<style>
+    .filters-section {
+        margin-bottom: 2rem;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-item.active {
+        background: linear-gradient(135deg, #20c997, #17a589);
+    }
+
+    .stat-item a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .stat-item.active a {
+        color: white;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .service-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .service-render {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .service-topografia {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .service-plano {
+        background: #e8f5e9;
+        color: #388e3c;
+    }
+
+    .service-correccion {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .text-muted {
+        color: #999;
+    }
+</style>
+{% endblock %}

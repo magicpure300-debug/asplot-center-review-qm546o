@@ -1,0 +1,206 @@
+# ============================================================================
+# LISTA DE CAMBIOS CRÍTICOS PARA APP.PY
+# ============================================================================
+# 
+# 1. IMPORTACIONES - Cambiar Venta/DetalleVenta por Factura/DetalleFactura
+# 2. CONFIGURACIÓN - Agregar UPLOAD_FOLDER para archivos
+# 3. SETUP INICIAL - Actualizar rol 'administrador' → 'admin'
+# 4. DASHBOARD - Actualizar variables (total_insumos, total_facturas, etc.)
+# 5. PROYECTOS - Reemplazar TODAS las rutas de proyectos con las nuevas
+# 6. FACTURAS - Renombrar todas las rutas de ventas → facturas
+# 7. DECORADORES - Agregar control de acceso por roles
+# 8. ALLOWED_FILE - Actualizar extensiones permitidas
+# 
+# ============================================================================
+
+# INSTRUCCIONES PARA APLICAR LOS CAMBIOS:
+
+# PASO 1: Buscar y reemplazar en IMPORTACIONES (línea 4):
+# ANTES:
+from models import db, Usuario, Cliente, Proyecto, TipoPlano, Plano, Material, Inventario, Venta, DetalleVenta
+
+# DESPUÉS:
+from models import db, Usuario, Cliente, Proyecto, TipoPlano, Plano, Material, Inventario, Factura, DetalleFactura
+
+
+# PASO 2: Agregar después de la línea 16 (app.config.from_object):
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
+
+
+# PASO 3: Crear directorio de uploads (después de crear app, línea 17):
+os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'solicitudes'), exist_ok=True)
+
+
+# PASO 4: Actualizar función allowed_file (buscar en línea 1079):
+# ANTES:
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# DESPUÉS:
+ALLOWED_EXTENSIONS = {'pdf', 'dwg', 'dxf', 'jpg', 'jpeg', 'png'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# PASO 5: Actualizar creación del admin (línea 39):
+# ANTES:
+rol='administrador',
+
+# DESPUÉS:
+rol='admin',
+
+
+# PASO 6: Actualizar creación proyecto ejemplo (líneas 71-78):
+# ANTES:
+proyecto_ejemplo = Proyecto(
+    id_cliente=cliente_ejemplo.id_cliente,
+    nombre_proyecto='Proyecto de Prueba',
+    descripcion='Proyecto de ejemplo para subir planos de prueba',
+    fecha_inicio=datetime.now().date(),
+    fecha_fin=datetime.now().date(),
+    estado='activo'
+)
+
+# DESPUÉS:
+proyecto_ejemplo = Proyecto(
+    id_cliente=cliente_ejemplo.id_cliente,
+    nombre_proyecto='Proyecto de Prueba',
+    descripcion='Proyecto de ejemplo para subir planos de prueba',
+    tipo_servicio='plano',
+    estado='aprobado'
+)
+
+
+# PASO 7: REEMPLAZAR COMPLETAMENTE la función dashboard (líneas 109-136):
+# CÓDIGO COMPLETO para dashboard():
+@app.route('/')
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    # Obtener estadísticas para las tarjetas KPI
+    total_clientes = Cliente.query.count()
+    total_proyectos = Proyecto.query.count()
+    total_planos = Plano.query.count()
+    
+    # Calcular total de insumos (suma de cantidades)
+    total_insumos = db.session.query(db.func.sum(Inventario.cantidad)).scalar() or 0
+    
+    # Calcular total de facturas (valor monetario)
+    total_facturas = db.session.query(db.func.sum(Factura.total)).filter(
+        Factura.estado_pago != 'cancelada'
+    ).scalar() or 0
+    
+    # Obtener proyectos recientes
+    proyectos_recientes = Proyecto.query.order_by(
+        Proyecto.fecha_solicitud.desc()
+    ).limit(5).all()
+    
+    return render_template('dashboard.html',
+                         total_clientes=total_clientes,
+                         total_proyectos=total_proyectos,
+                         total_planos=total_planos,
+                         total_insumos=total_insumos,
+                         total_facturas=total_facturas,
+                         proyectos_recientes=proyectos_recientes)
+
+
+# PASO 8: ELIMINACIÓN: Eliminar COMPLETAMENTE las funciones de proyectos antiguas (líneas 200-265):
+# - proyectos()
+# - crear_proyecto()
+# - editar_proyecto()
+# - eliminar_proyecto()
+
+
+# PASO 9: INSERTAR las nuevas rutas de proyectos (copiar de NUEVAS_RUTAS_PROYECTOS.py)
+# Insertar después de la función eliminar_cliente (después de línea 198)
+
+
+# PASO 10: RENOMBRAR todas las funciones de Ventas → Facturas (líneas 590-757):
+
+# Buscar y reemplazar:
+# @app.route('/ventas')              → @app.route('/facturas')
+# def ventas():                      → def facturas():
+# @app.route('/ventas/crear')        → @app.route('/facturas/crear')
+# def crear_venta():                 → def crear_factura():
+# @app.route('/ventas/ver/<int:id>') → @app.route('/facturas/<int:id>')
+# def ver_venta(id):                 → def ver_factura(id):
+# @app.route('/ventas/eliminar')     → @app.route('/facturas/eliminar')
+# def eliminar_venta(id):            → def eliminar_factura(id):
+# @app.route('/ventas/imprimir')     → @app.route('/facturas/imprimir')
+# def imprimir_venta(id):            → def imprimir_factura(id):
+
+# Dentro de las funciones, reemplazar:
+# Venta.query                        → Factura.query
+# DetalleVenta(                      → DetalleFactura(
+# venta = Venta(                     → factura = Factura(
+# venta.                             → factura.
+# detalle_ventas                     → detalles
+# 'ventas.html'                      → 'facturas.html'
+# 'crear_venta.html'                 → 'crear_factura.html'
+# 'ver_venta.html'                   → 'ver_factura.html'
+# url_for('ventas')                  → url_for('facturas')
+
+
+# PASO 11: Agregar decoradores de control de acceso ANTES de create_app():
+from functools import wraps
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.es_admin:
+            flash('Acceso denegado. Se requiere rol de Administrador.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_or_trabajador_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not (current_user.es_admin or current_user.es_trabajador):
+            flash('Acceso denegado.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# PASO 12: Aplicar decoradores a rutas protegidas:
+# 
+# @admin_or_trabajador_required en:
+# - clientes()
+# - crear_cliente()
+# - editar_cliente()
+# - eliminar_cliente()
+# - inventario()
+# - materiales()
+# - crear_material()
+# - editar_material()
+# - ajustar_inventario()
+#
+# @admin_required en:
+# - reportes()
+# - generar_reporte()
+# - usuarios()
+# - crear_usuario()
+# - editar_usuario()
+# - eliminar_usuario()
+
+
+# ============================================================================
+# EJEMPLO DE APLICACIÓN EN UNA FUNCIÓN:
+# ============================================================================
+
+# ANTES:
+@app.route('/clientes')
+@login_required
+def clientes():
+    ...
+
+# DESPUÉS:
+@app.route('/clientes')
+@login_required
+@admin_or_trabajador_required
+def clientes():
+    ...
+

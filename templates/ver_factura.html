@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+
+{% block title %}Detalle de Factura - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Detalle de Factura #{{ factura.id_factura }}</h1>
+    <p>Información completa de la factura</p>
+    <a href="{{ url_for('facturas') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+        Volver
+    </a>
+</div>
+
+<div class="detail-container">
+    <div class="detail-card">
+        <div class="detail-header">
+            <h2>Factura #{{ "%06d"|format(factura.id_factura) }}</h2>
+            <span class="status-badge status-{{ factura.estado_pago }}">
+                {{ factura.estado_pago.title() }}
+            </span>
+        </div>
+
+        <div class="detail-body">
+            <div class="detail-section">
+                <h3><i class="fas fa-info-circle"></i> Información de la Factura</h3>
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <label>Fecha:</label>
+                        <span>{{ factura.fecha_factura.strftime('%d/%m/%Y %H:%M:%S') }}</span>
+                    </div>
+                    <div class="detail-field">
+                        <label>Método de Pago:</label>
+                        <span>{{ factura.metodo_pago.title() if factura.metodo_pago else 'No especificado' }}</span>
+                    </div>
+                    <div class="detail-field">
+                        <label>Atendido por:</label>
+                        <span>{{ factura.usuario.nombre_usuario }}</span>
+                    </div>
+                    <div class="detail-field">
+                        <label>Proyecto:</label>
+                        <span>{{ factura.proyecto.nombre_proyecto }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3><i class="fas fa-user"></i> Información del Cliente</h3>
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <label>Cliente:</label>
+                        <span><strong>{{ factura.cliente.nombre_completo }}</strong></span>
+                    </div>
+                    <div class="detail-field">
+                        <label>Email:</label>
+                        <span>{{ factura.cliente.email }}</span>
+                    </div>
+                    <div class="detail-field">
+                        <label>Teléfono:</label>
+                        <span>{{ factura.cliente.telefono }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3><i class="fas fa-list"></i> Detalles de la Factura</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Descuento</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for detalle in factura.detalles %}
+                        <tr>
+                            <td>{{ detalle.descripcion }}</td>
+                            <td class="text-center">{{ detalle.cantidad }}</td>
+                            <td class="text-right">${{ "%.2f"|format(detalle.precio_unitario) }}</td>
+                            <td class="text-right">${{ "%.2f"|format(detalle.descuento) }}</td>
+                            <td class="text-right"><strong>${{ "%.2f"|format(detalle.subtotal) }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="detail-section">
+                <h3><i class="fas fa-calculator"></i> Totales</h3>
+                <div class="totals-grid">
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span>${{ "%.2f"|format(factura.subtotal) }}</span>
+                    </div>
+                    {% if factura.impuesto > 0 %}
+                    <div class="total-row">
+                        <span>Impuesto:</span>
+                        <span>${{ "%.2f"|format(factura.impuesto) }}</span>
+                    </div>
+                    {% endif %}
+                    {% if factura.descuento > 0 %}
+                    <div class="total-row">
+                        <span>Descuento:</span>
+                        <span>-${{ "%.2f"|format(factura.descuento) }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="total-row total-final">
+                        <span><strong>TOTAL:</strong></span>
+                        <span><strong>${{ "%.2f"|format(factura.total) }}</strong></span>
+                    </div>
+                </div>
+            </div>
+
+            {% if factura.notas %}
+            <div class="detail-section">
+                <h3><i class="fas fa-sticky-note"></i> Notas</h3>
+                <p>{{ factura.notas }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="detail-actions">
+            <a href="{{ url_for('imprimir_factura', id=factura.id_factura) }}" class="btn btn-primary">
+                <i class="fas fa-print"></i>
+                Imprimir Factura
+            </a>
+            {% if factura.estado_pago != 'cancelada' %}
+            <a href="{{ url_for('eliminar_factura', id=factura.id_factura) }}" class="btn btn-red"
+                onclick="return confirm('¿Estás seguro de cancelar esta factura?')">
+                <i class="fas fa-ban"></i>
+                Cancelar Factura
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

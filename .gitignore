@@ -1,0 +1,42 @@
+# ===================================================================
+# ASPLOT CENTER - .gitignore
+# ===================================================================
+
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Base de datos local (SQLite - respaldo; los datos viven en MySQL)
+instance/*.db
+instance/*.sqlite3
+*.db
+
+# Archivos generados por la migración (Sprint 1)
+# Se ignoran porque contienen datos sensibles de la empresa
+migracion/*.json
+migracion/*.sql
+
+# Archivos subidos por los usuarios (planos, solicitudes)
+static/uploads/planos/**
+static/uploads/planos/solicitudes/**
+!static/uploads/planos/**/.gitkeep
+
+# Logs y temporales
+*.log
+logs/
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Entornos de despliegue
+.env
+.env.*
+!.env.example

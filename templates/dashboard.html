@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Panel de Control</h1>
+    <p>Vista general de las operaciones de As Plot Center</p>
+</div>
+
+<!-- KPIs Cards - Solo 5 tarjetas principales -->
+<div class="kpi-section">
+    <div class="kpi-row">
+        <!-- Clientes -->
+        <div class="kpi-card kpi-unified">
+            <div class="kpi-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="kpi-content">
+                <h3>Clientes</h3>
+                <span class="kpi-number">{{ total_clientes }}</span>
+            </div>
+        </div>
+
+        <!-- Proyectos -->
+        <div class="kpi-card kpi-unified">
+            <div class="kpi-icon">
+                <i class="fas fa-project-diagram"></i>
+            </div>
+            <div class="kpi-content">
+                <h3>Proyectos</h3>
+                <span class="kpi-number">{{ total_proyectos }}</span>
+            </div>
+        </div>
+
+        <!-- Planos -->
+        <div class="kpi-card kpi-unified">
+            <div class="kpi-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="kpi-content">
+                <h3>Planos</h3>
+                <span class="kpi-number">{{ total_planos }}</span>
+            </div>
+        </div>
+
+        <!-- Insumos -->
+        <div class="kpi-card kpi-unified">
+            <div class="kpi-icon">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="kpi-content">
+                <h3>Insumos</h3>
+                <span class="kpi-number">{{ total_insumos }}</span>
+            </div>
+        </div>
+
+        <!-- Facturas -->
+        <div class="kpi-card kpi-unified">
+            <div class="kpi-icon">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <div class="kpi-content">
+                <h3>Facturas</h3>
+                <span class="kpi-number">$ {{ "%.0f"|format(total_facturas) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información adicional -->
+<div class="dashboard-info">
+    <div class="info-section">
+        <h3>Proyectos Recientes</h3>
+        <div class="info-list">
+            {% if proyectos_recientes %}
+                {% for proyecto in proyectos_recientes %}
+                <div class="info-item">
+                    <i class="fas fa-folder"></i>
+                    <div class="info-content">
+                        <strong>{{ proyecto.nombre_proyecto }}</strong>
+                        <span>{{ proyecto.cliente.nombre_completo }}</span>
+                    </div>
+                    <span class="info-status status-{{ proyecto.estado }}">{{ proyecto.estado.replace('_', ' ').title() }}</span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-data">
+                    <i class="fas fa-inbox"></i>
+                    <p>No hay proyectos recientes</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

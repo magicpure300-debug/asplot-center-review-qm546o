@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASPLOT CENTER - Servicios de Ingeniería y Planos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <i class="fas fa-drafting-compass"></i>
+                <span>ASPLOT CENTER</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="#inicio">Inicio</a></li>
+                <li><a href="#nosotros">Nosotros</a></li>
+                <li><a href="#servicios">Servicios</a></li>
+                <li><a href="#ubicacion">Ubicación</a></li>
+                <li><a href="{{ url_for('registro') }}" class="btn-register">Registrarse</a></li>
+                <li><a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a></li>
+            </ul>
+            <div class="nav-toggle" id="nav-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">ASPLOT CENTER</h1>
+            <p class="hero-subtitle">Servicios de Ingeniería, Proyectos y Construcción</p>
+            <p class="hero-description">
+                Líderes en la impresión de planos de construcción y servicios de ingeniería
+                en el corazón de Maturín, Estado Monagas.
+            </p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('login') }}" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Acceder al Sistema
+                </a>
+                <a href="#servicios" class="btn btn-secondary">
+                    <i class="fas fa-info-circle"></i>
+                    Conocer Más
+                </a>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
+                    fill="white" />
+            </svg>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="nosotros" class="about">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Sobre Nosotros</h2>
+                <p class="section-subtitle">Nuestra visión y compromiso</p>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h3>Nuestra Visión</h3>
+                        <p>
+                            Ser una empresa líder en la prestación de servicios de ingeniería, proyectos y construcción.
+                            A la vanguardia del desarrollo tecnológico, basada en el conocimiento, respetada por su
+                            ética
+                            y honestidad, reconocida por sus competencias en el manejo de recursos técnicos y
+                            financieros.
+                        </p>
+                    </div>
+                    <div class="about-card">
+                        <div class="about-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Nuestro Equipo</h3>
+                        <p>
+                            Contamos con un equipo de profesionales creativos con capacidad para enfrentar nuevos retos
+                            y aportar soluciones innovadoras y eficientes a nuestros clientes.
+                        </p>
+                    </div>
+                </div>
+                <div class="about-image">
+                    <div class="image-frame">
+                        <i class="fas fa-building"></i>
+                        <h4>ASPLOT CENTER</h4>
+                        <p>Tu aliado en ingeniería</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="servicios" class="services">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Nuestros Servicios</h2>
+                <p class="section-subtitle">Soluciones integrales para tus proyectos</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <h3>Impresión de Planos</h3>
+                    <p>Impresión de alta calidad en diferentes formatos: A0, A1, A2, A3, A4. Utilizamos tecnología de
+                        punta para garantizar resultados profesionales.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-drafting-compass"></i>
+                    </div>
+                    <h3>Diseño de Planos</h3>
+                    <p>Elaboración de planos arquitectónicos, estructurales, eléctricos y sanitarios con precisión y
+                        detalle profesional.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h3>Renders 3D</h3>
+                    <p>Visualización fotorrealista de proyectos arquitectónicos para presentaciones y toma de
+                        decisiones.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3>Topografía</h3>
+                    <p>Levantamientos topográficos precisos para proyectos de construcción, urbanismo y desarrollo
+                        territorial.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h3>Correcciones</h3>
+                    <p>Modificación y corrección de planos existentes, adaptándolos a nuevos requerimientos o
+                        normativas.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3>Consultoría</h3>
+                    <p>Asesoría profesional en proyectos de ingeniería y construcción para optimizar recursos y
+                        resultados.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section id="ubicacion" class="location">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Ubicación</h2>
+                <p class="section-subtitle">Encuéntranos en el centro de Maturín</p>
+            </div>
+            <div class="location-content">
+                <div class="location-info">
+                    <div class="location-card">
+                        <div class="location-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3>Dirección</h3>
+                        <p>
+                            Calle Úrica, cruce con Carrera 12<br>
+                            Local N°6, Sector Centro<br>
+                            Maturín, Estado Monagas
+                        </p>
+                    </div>
+                    <div class="location-card">
+                        <div class="location-icon">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <h3>Puntos de Referencia</h3>
+                        <ul>
+                            <li><i class="fas fa-check"></i> A una calle del IUPSM</li>
+                            <li><i class="fas fa-check"></i> A una calle de la Av. Orinoco</li>
+                            <li><i class="fas fa-check"></i> Cerca de la Plaza Ayacucho</li>
+                            <li><i class="fas fa-check"></i> Zona comercial céntrica</li>
+                        </ul>
+                    </div>
+                    <div class="location-card">
+                        <div class="location-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3>Horario de Atención</h3>
+                        <p>
+                            Lunes a Viernes: 8:00 AM - 6:00 PM<br>
+                            Sábados: 8:00 AM - 12:00 PM
+                        </p>
+                    </div>
+                </div>
+                <div class="location-map">
+                    <img src="{{ url_for('static', filename='images/mapa_ubicacion.png') }}"
+                        alt="Ubicación de ASPLOT CENTER">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>¿Listo para comenzar tu proyecto?</h2>
+            <p>Accede a nuestro sistema para gestionar tus proyectos y solicitudes de servicio.</p>
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">
+                <i class="fas fa-sign-in-alt"></i>
+                Acceder al Sistema
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <i class="fas fa-drafting-compass"></i>
+                        <span>ASPLOT CENTER</span>
+                    </div>
+                    <p>Servicios de ingeniería, proyectos y construcción en el corazón de Maturín.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#nosotros">Nosotros</a></li>
+                        <li><a href="#servicios">Servicios</a></li>
+                        <li><a href="#ubicacion">Ubicación</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> Calle Úrica, Local N°6, Maturín</li>
+                        <li><i class="fas fa-phone"></i> +58 XXX-XXXXXXX</li>
+                        <li><i class="fas fa-envelope"></i> info@asplotcenter.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 ASPLOT CENTER. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    navMenu.classList.remove('active');
+                }
+            });
+        });
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+</body>
+
+</html>

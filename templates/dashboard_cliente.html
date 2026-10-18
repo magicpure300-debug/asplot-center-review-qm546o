@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+
+{% block title %}Mi Panel - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>¡Bienvenido, {{ current_user.nombre_completo or current_user.nombre_usuario }}!</h1>
+        <p>Panel de cliente - Gestiona tus proyectos y solicitudes</p>
+    </div>
+    <a href="{{ url_for('solicitar_servicio') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i>
+        Solicitar Servicio
+    </a>
+</div>
+
+<!-- Resumen de proyectos del cliente -->
+<div class="kpi-row">
+    <div class="kpi-card kpi-unified">
+        <div class="kpi-icon">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div class="kpi-content">
+            <h3>Mis Solicitudes</h3>
+            <span class="kpi-number">{{ mis_proyectos|length }}</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-unified">
+        <div class="kpi-icon">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div class="kpi-content">
+            <h3>En Proceso</h3>
+            <span class="kpi-number">{{ mis_proyectos|selectattr('estado', 'in', ['cotizado', 'aprobado',
+                'en_progreso'])|list|length }}</span>
+        </div>
+    </div>
+
+    <div class="kpi-card kpi-unified">
+        <div class="kpi-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="kpi-content">
+            <h3>Completados</h3>
+            <span class="kpi-number">{{ mis_proyectos|selectattr('estado', 'equalto', 'ejecutado')|list|length }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Mis proyectos recientes -->
+<div class="dashboard-section">
+    <h2><i class="fas fa-folder-open"></i> Mis Proyectos</h2>
+
+    {% if mis_proyectos %}
+    <div class="projects-grid">
+        {% for proyecto in mis_proyectos %}
+        <div class="project-card">
+            <div class="project-header">
+                <h3>{{ proyecto.nombre_proyecto }}</h3>
+                <span class="status-badge status-{{ proyecto.estado }}">
+                    {% if proyecto.estado == 'solicitado' %}Solicitado
+                    {% elif proyecto.estado == 'cotizado' %}Cotizado
+                    {% elif proyecto.estado == 'aprobado' %}Aprobado
+                    {% elif proyecto.estado == 'en_progreso' %}En Progreso
+                    {% elif proyecto.estado == 'ejecutado' %}Completado
+                    {% elif proyecto.estado == 'rechazado' %}Rechazado
+                    {% endif %}
+                </span>
+            </div>
+            <div class="project-description">
+                <p>{{ proyecto.descripcion[:100] }}{% if proyecto.descripcion|length > 100 %}...{% endif %}</p>
+            </div>
+            <div class="project-details">
+                <div class="detail-item">
+                    <i class="fas fa-tag"></i>
+                    <span>{{ proyecto.tipo_servicio|capitalize }}</span>
+                </div>
+                <div class="detail-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>{{ proyecto.fecha_solicitud.strftime('%d/%m/%Y') }}</span>
+                </div>
+                {% if proyecto.presupuesto %}
+                <div class="detail-item">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>${{ proyecto.presupuesto }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="project-footer">
+                <a href="{{ url_for('detalle_proyecto', id=proyecto.id_proyecto) }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-eye"></i> Ver Detalles
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-data">
+        <i class="fas fa-folder-open"></i>
+        <p>Aún no tienes proyectos</p>
+        <a href="{{ url_for('solicitar_servicio') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Solicitar tu primer servicio
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends "layout.html" %}
+
+{% block title %}Mis Solicitudes - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Mis Solicitudes</h1>
+        <p>Gestiona tus servicios solicitados</p>
+    </div>
+    <a href="{{ url_for('solicitar_servicio') }}" class="btn btn-primary btn-large">
+        <i class="fas fa-plus-circle"></i>
+        Solicitar Servicio
+    </a>
+</div>
+
+{% if proyectos %}
+<div class="projects-grid">
+    {% for proyecto in proyectos %}
+    <div class="project-card">
+        <div class="project-header">
+            <div>
+                <h3>{{ proyecto.nombre_proyecto }}</h3>
+                <span class="service-type">{{ proyecto.tipo_servicio.upper() }}</span>
+            </div>
+            <a href="{{ url_for('detalle_proyecto', id=proyecto.id_proyecto) }}" class="btn btn-sm btn-secondary">
+                <i class="fas fa-eye"></i>
+                Ver Detalle
+            </a>
+        </div>
+
+        <div class="project-status">
+            <span class="status-badge status-{{ proyecto.estado }}">
+                {{ proyecto.estado.replace('_', ' ').title() }}
+            </span>
+        </div>
+
+        <div class="project-description">
+            <p>{{ proyecto.descripcion[:100] }}{% if proyecto.descripcion|length > 100 %}...{% endif %}</p>
+        </div>
+
+        <div class="project-details">
+            <div class="detail-item">
+                <i class="fas fa-calendar"></i>
+                <span>Solicitado: {{ proyecto.fecha_solicitud.strftime('%d/%m/%Y') }}</span>
+            </div>
+
+            {% if proyecto.presupuesto %}
+            <div class="detail-item">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Presupuesto: ${{ "%.2f"|format(proyecto.presupuesto) }}</span>
+            </div>
+            {% endif %}
+
+            {% if proyecto.fecha_fin %}
+            <div class="detail-item">
+                <i class="fas fa-clock"></i>
+                <span>Fecha estimada: {{ proyecto.fecha_fin.strftime('%d/%m/%Y') }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Acciones según estado -->
+        <div class="project-footer">
+            {% if proyecto.estado == 'cotizado' %}
+            <form action="{{ url_for('aceptar_cotizacion', id=proyecto.id_proyecto) }}" method="POST"
+                style="width: 100%;">
+                <button type="submit" class="btn btn-green" style="width: 100%;"
+                    onclick="return confirm('¿Desea aceptar esta cotización y proceder con el proyecto?')">
+                    <i class="fas fa-check-circle"></i>
+                    Aceptar Cotización (${{ "%.2f"|format(proyecto.presupuesto) }})
+                </button>
+            </form>
+            {% elif proyecto.estado == 'solicitado' %}
+            <span class="status-message">
+                <i class="fas fa-hourglass-half"></i>
+                Esperando cotización del administrador
+            </span>
+            {% elif proyecto.estado == 'aprobado' %}
+            <span class="status-message status-success">
+                <i class="fas fa-check"></i>
+                Proyecto aprobado - En espera de inicio
+            </span>
+            {% elif proyecto.estado == 'en_progreso' %}
+            <span class="status-message status-info">
+                <i class="fas fa-cog fa-spin"></i>
+                Proyecto en progreso
+            </span>
+            {% elif proyecto.estado == 'ejecutado' %}
+            <span class="status-message status-success">
+                <i class="fas fa-check-double"></i>
+                Proyecto completado
+            </span>
+            {% elif proyecto.estado == 'rechazado' %}
+            <span class="status-message status-error">
+                <i class="fas fa-times-circle"></i>
+                Solicitud rechazada
+            </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="no-data">
+    <i class="fas fa-inbox"></i>
+    <h3>No tienes solicitudes aún</h3>
+    <p>Comienza solicitando tu primer servicio</p>
+    <a href="{{ url_for('solicitar_servicio') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i>
+        Solicitar Servicio
+    </a>
+</div>
+{% endif %}
+
+<!-- Estilos adicionales -->
+<style>
+    .service-type {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: #e9ecef;
+        color: #495057;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 4px;
+        margin-left: 0.5rem;
+        text-transform: uppercase;
+    }
+
+    .status-message {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #666;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .status-message.status-success {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-message.status-info {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-message.status-error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .project-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .project-header h3 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .project-status {
+        margin-bottom: 1rem;
+    }
+
+    .project-description {
+        margin-bottom: 1.5rem;
+    }
+
+    .project-description p {
+        color: #666;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    .project-details {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .detail-item i {
+        width: 16px;
+        color: #20c997;
+    }
+
+    .project-footer {
+        display: flex;
+        justify-content: flex-end;
+    }
+</style>
+{% endblock %}
