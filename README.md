@@ -115,9 +115,7 @@ Programa Asplot/
 
 ### Autenticación
 
-El sistema está protegido por un sistema de login. Las credenciales por defecto son:
-- **Email**: admin@asplot.com
-- **Contraseña**: admin123
+El sistema está protegido por un sistema de login.
 
 ### Módulos Principales
 
