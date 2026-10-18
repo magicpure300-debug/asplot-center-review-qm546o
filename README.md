@@ -115,9 +115,7 @@ Programa Asplot/
 
 ### Autenticación
 
-El sistema está protegido por un sistema de login. Las credenciales por defecto son:
-- **Email**: admin@asplot.com
-- **Contraseña**: admin123
+El sistema está protegido por un sistema de login.
 
 ### Módulos Principales
 
@@ -314,7 +312,7 @@ Para soporte técnico o consultas sobre el sistema, contactar al equipo de desar
 ---
 
 **Versión**: 1.0.0  
-**Última actualización**: Octubre 2025  
+**Última actualización**: Octubre 2026  
 **Desarrollado con**: Python Flask + SQLAlchemy + HTML5/CSS3/JavaScript
 
 
