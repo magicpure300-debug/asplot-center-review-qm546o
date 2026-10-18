@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portafolio - ASPLOT CENTER</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/portafolio.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/zoom.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="{{ url_for('landing') }}" class="nav-logo">
+            <span>ASPLOT <strong>CENTER</strong></span>
+        </a>
+        <ul class="nav-menu">
+            <li><a href="{{ url_for('landing') }}#inicio">Inicio</a></li>
+            <li><a href="{{ url_for('landing') }}#servicios">Servicios</a></li>
+            <li><a href="{{ url_for('portafolio') }}">Portafolio</a></li>
+            <li><a href="{{ url_for('landing') }}#ubicacion">Ubicación</a></li>
+            <li><a href="{{ url_for('registro') }}" class="btn-register">Registrarse</a></li>
+            <li><a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a></li>
+        </ul>
+    </div>
+</nav>
+
+<header class="portafolio-header">
+    <h1>Nuestro Portafolio</h1>
+    <p>Proyectos de diseño, render, topografía y corrección ejecutados por ASPLOT CENTER</p>
+</header>
+
+<!-- Filtros (PB-08) -->
+<section class="portafolio-filtros">
+    <form method="GET" action="{{ url_for('portafolio') }}" class="filtros-form">
+        <div class="filtro-grupo">
+            <label for="tipo">Tipo de servicio</label>
+            <select id="tipo" name="tipo" class="form-control">
+                <option value="">Todos</option>
+                {% for t in tipos_disponibles %}
+                <option value="{{ t }}" {% if tipo_servicio == t %}selected{% endif %}>
+                    {{ t | replace('_', ' ') | capitalize }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filtro-grupo">
+            <label for="presupuesto_min">Presupuesto desde ($)</label>
+            <input type="number" id="presupuesto_min" name="presupuesto_min" class="form-control"
+                   min="0" step="1" value="{{ presupuesto_min }}" placeholder="Mínimo">
+        </div>
+        <div class="filtro-grupo">
+            <label for="presupuesto_max">Presupuesto hasta ($)</label>
+            <input type="number" id="presupuesto_max" name="presupuesto_max" class="form-control"
+                   min="0" step="1" value="{{ presupuesto_max }}" placeholder="Máximo">
+        </div>
+        <div class="filtro-grupo filtro-acciones">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+            <a href="{{ url_for('portafolio') }}" class="btn btn-secondary">Limpiar</a>
+        </div>
+    </form>
+</section>
+
+<!-- Listado de proyectos -->
+<section class="portafolio-grid-section">
+    <p class="portafolio-contador">
+        {{ proyectos | length }} proyecto{{ '' if proyectos | length == 1 else 's' }} encontrado{{ '' if proyectos | length == 1 else 's' }}
+    </p>
+
+    {% if proyectos %}
+    <div class="portafolio-grid">
+        {% for proyecto in proyectos %}
+        <article class="portafolio-card">
+            <div class="portafolio-card-header">
+                <span class="badge-servicio">{{ proyecto.tipo_servicio | replace('_', ' ') | capitalize }}</span>
+                <span class="badge-estado estado-{{ proyecto.estado }}">
+                    {{ {'aprobado': 'Aprobado', 'en_progreso': 'En progreso', 'ejecutado': 'Entregado'}.get(proyecto.estado, proyecto.estado) }}
+                </span>
+            </div>
+
+            <div class="portafolio-media">
+                {% set imagenes = [] %}
+                {% for plano in proyecto.planos %}
+                    {% if plano.archivo.lower().split('.')[-1] in ['png', 'jpg', 'jpeg', 'webp'] %}
+                        {% if imagenes.append(plano) %}{% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if imagenes %}
+                <div class="galeria-miniatura">
+                    {% for plano in imagenes %}
+                    <img class="miniatura-zoomable"
+                         src="{{ url_for('ver_plano', id=plano.id_plano) }}"
+                         data-zoom-src="{{ url_for('ver_plano', id=plano.id_plano) }}"
+                         data-zoom-titulo="{{ plano.nombre_plano }} — {{ proyecto.nombre_proyecto }}"
+                         alt="{{ plano.nombre_plano }}" loading="lazy">
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="galeria-vacia">
+                    <i class="fas fa-drafting-compass"></i>
+                    <span>Proyecto en desarrollo</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="portafolio-card-body">
+                <h3>{{ proyecto.nombre_proyecto }}</h3>
+                <p class="portafolio-descripcion">{{ proyecto.descripcion }}</p>
+                <ul class="portafolio-meta">
+                    <li><i class="fas fa-user-tie"></i> {{ proyecto.cliente.nombre_completo if proyecto.cliente else 'Cliente' }}</li>
+                    {% if proyecto.presupuesto %}
+                    <li><i class="fas fa-dollar-sign"></i> {{ '%.2f' | format(proyecto.presupuesto | float) }}</li>
+                    {% endif %}
+                    <li><i class="far fa-calendar"></i> {{ proyecto.fecha_solicitud.strftime('%d/%m/%Y') if proyecto.fecha_solicitud else '—' }}</li>
+                </ul>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="portafolio-vacio">
+        <i class="fas fa-search"></i>
+        <p>No hay proyectos que coincidan con los filtros seleccionados.</p>
+        <a href="{{ url_for('portafolio') }}" class="btn btn-primary">Ver todo el portafolio</a>
+    </div>
+    {% endif %}
+</section>
+
+<footer class="portafolio-footer">
+    <p>© ASPLOT CENTER — Maturín, estado Monagas · <a href="{{ url_for('landing') }}">Volver al inicio</a></p>
+</footer>
+
+<!-- Visor de zoom (Sprint 3 - PB-09) -->
+<div id="zoom-overlay" class="zoom-overlay" hidden>
+    <div class="zoom-barra">
+        <span id="zoom-titulo" class="zoom-titulo"></span>
+        <div class="zoom-controles">
+            <button type="button" id="zoom-out" title="Alejar"><i class="fas fa-minus"></i></button>
+            <span id="zoom-nivel" class="zoom-nivel">100%</span>
+            <button type="button" id="zoom-in" title="Acercar"><i class="fas fa-plus"></i></button>
+            <button type="button" id="zoom-reset" title="Restablecer"><i class="fas fa-compress-arrows-alt"></i></button>
+            <button type="button" id="zoom-cerrar" title="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    <div id="zoom-contenedor" class="zoom-contenedor">
+        <img id="zoom-imagen" alt="Vista ampliada">
+    </div>
+    <p class="zoom-ayuda">Arrastra para mover · Rueda del ratón para zoom · Esc para cerrar</p>
+</div>
+
+<script src="{{ url_for('static', filename='js/zoom.js') }}"></script>
+</body>
+</html>

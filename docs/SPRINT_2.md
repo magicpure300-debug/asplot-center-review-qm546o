@@ -8,14 +8,14 @@
 
 ## PB-05 — Índices en las tablas más consultadas
 
-**23 índices** añadidos en `models.py` (`__table_args__`) y aplicables a BDs
+**24 índices** añadidos en `models.py` (`__table_args__`) y aplicables a BDs
 existentes con `aplicar_indices.py` (idempotente, compatible SQLite y MySQL):
 
 | Grupo | Índices | Justificación |
 |---|---|---|
 | `usuarios` | `rol`, `activo` | Filtrado por rol en menús y permisos |
 | `clientes` | `id_usuario`, `(nombre, apellido)` | JOINs y búsquedas de clientes |
-| `proyectos` | `id_cliente`, `estado`, `fecha_solicitud`, `tipo_servicio`, `(estado, tipo_servicio)` | Tablero por estado, listados ordenados y filtros del portafolio (Sprint 3) |
+| `proyectos` | `id_cliente`, `estado`, `fecha_solicitud`, `tipo_servicio`, `presupuesto`, `(estado, tipo_servicio)` | Tablero por estado, listados ordenados y filtros del portafolio (Sprint 3) |
 | `planos` | `id_proyecto`, `id_tipo_plano`, `id_usuario`, `fecha_subida` | JOINs de listados y búsqueda por fechas |
 | `materiales` | `categoria`, `activo` | Filtros del inventario |
 | `inventario` | `id_material` | JOIN con materiales |
@@ -28,7 +28,7 @@ python aplicar_indices.py --motor mysql  # MySQL (variables MYSQL_*)
 python aplicar_indices.py --listar       # inspeccionar índices existentes
 ```
 
-Verificado: 23 creados en la primera ejecución, 23 omitidos en la segunda (idempotente).
+Verificado: 24 creados desde cero, y en cada reejecución todos omitidos (idempotente).
 
 ## PB-04 — Optimización de consultas
 
@@ -60,7 +60,7 @@ de los índices y del `selectinload` se observa con datos de producción
 
 | Archivo | Cambio |
 |---|---|
-| `models.py` | 23 índices en `__table_args__` de las 8 tablas |
+| `models.py` | 24 índices en `__table_args__` de las 8 tablas |
 | `aplicar_indices.py` | Script idempotente de aplicación (SQLite/MySQL) |
 | `app.py` | Conteos consolidados, `selectinload` en 6 listados, paginación |
 | `templates/buscar_planos.html` | Controles de paginación con conservación de filtros |
@@ -70,7 +70,7 @@ de los índices y del `selectinload` se observa con datos de producción
 ## Criterios de aceptación
 
 - [x] Índices creados en las tablas más consultadas, aplicables a SQLite y MySQL
-- [x] Script idempotente verificado (2ª ejecución: 23 omitidos)
+- [x] Script idempotente verificado (2ª ejecución: 24 omitidos)
 - [x] Cero consultas N+1 en los listados principales (medido con `perf_test.py`)
 - [x] Conteos del tablero en una sola consulta por vista
 - [x] Búsqueda de planos paginada (20 por página, filtros conservados)

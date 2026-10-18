@@ -1,0 +1,344 @@
+/* ==========================================================================
+   ASPLOT CENTER - Portafolio Interactivo (Sprint 3 - PB-08)
+   Estilos de la página pública de portafolio y sus filtros.
+   ========================================================================== */
+
+:root {
+    --verde: #2e7d32;
+    --verde-oscuro: #1b5e20;
+    --verde-claro: #e8f5e9;
+    --gris: #f5f6f7;
+    --texto: #2b2b2b;
+    --borde: #e0e0e0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--texto);
+    background: #fff;
+    margin: 0;
+}
+
+/* Cabecera */
+.portafolio-header {
+    text-align: center;
+    padding: 70px 20px 40px;
+    background: linear-gradient(135deg, var(--verde-claro), #ffffff);
+}
+
+.portafolio-header h1 {
+    margin: 0 0 10px;
+    font-size: 2.4rem;
+    color: var(--verde-oscuro);
+}
+
+.portafolio-header p {
+    margin: 0;
+    color: #555;
+    font-size: 1.05rem;
+}
+
+/* Filtros */
+.portafolio-filtros {
+    max-width: 1100px;
+    margin: -20px auto 0;
+    padding: 0 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.filtros-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1 1 190px;
+}
+
+.filtro-grupo label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.form-control {
+    padding: 10px 12px;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: #fff;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--verde);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+}
+
+.filtro-acciones {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.btn-primary {
+    background: var(--verde);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: var(--verde-oscuro);
+    transform: translateY(-1px);
+    text-decoration: none;
+    color: #fff;
+}
+
+.btn-secondary {
+    background: var(--gris);
+    color: #444;
+    border: 1px solid var(--borde);
+}
+
+.btn-secondary:hover {
+    background: #ececec;
+    text-decoration: none;
+    color: #222;
+}
+
+/* Grid de proyectos */
+.portafolio-grid-section {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+}
+
+.portafolio-contador {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+}
+
+.portafolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 26px;
+}
+
+.portafolio-card {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.25s, transform 0.25s;
+}
+
+.portafolio-card:hover {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+}
+
+.portafolio-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px 0;
+}
+
+.badge-servicio {
+    background: var(--verde-claro);
+    color: var(--verde-oscuro);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 5px 11px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-estado {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+.estado-aprobado {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.estado-en_progreso {
+    background: #fff8e1;
+    color: #ef6c00;
+}
+
+.estado-ejecutado {
+    background: var(--verde-claro);
+    color: var(--verde-oscuro);
+}
+
+/* Media / galería */
+.portafolio-media {
+    padding: 14px 16px 0;
+}
+
+.galeria-miniatura {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.miniatura-zoomable {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+    cursor: zoom-in;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--gris);
+}
+
+.miniatura-zoomable:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.galeria-vacia {
+    height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--gris);
+    border-radius: 8px;
+    color: #999;
+    font-size: 0.88rem;
+}
+
+.galeria-vacia i {
+    font-size: 1.7rem;
+}
+
+/* Cuerpo */
+.portafolio-card-body {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.portafolio-card-body h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--verde-oscuro);
+}
+
+.portafolio-descripcion {
+    margin: 0;
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.portafolio-meta {
+    list-style: none;
+    padding: 10px 0 0;
+    margin: auto 0 0;
+    border-top: 1px solid var(--borde);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.86rem;
+    color: #666;
+}
+
+.portafolio-meta li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.portafolio-meta i {
+    color: var(--verde);
+    width: 16px;
+    text-align: center;
+}
+
+/* Vacío */
+.portafolio-vacio {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--gris);
+    border-radius: 14px;
+    color: #777;
+}
+
+.portafolio-vacio i {
+    font-size: 2.4rem;
+    color: var(--verde);
+    margin-bottom: 12px;
+    display: block;
+}
+
+.portafolio-vacio .btn {
+    margin-top: 14px;
+}
+
+/* Footer */
+.portafolio-footer {
+    background: var(--gris);
+    text-align: center;
+    padding: 22px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.portafolio-footer a {
+    color: var(--verde);
+    text-decoration: none;
+}
+
+@media (max-width: 640px) {
+    .portafolio-header h1 { font-size: 1.8rem; }
+    .filtros-form { flex-direction: column; align-items: stretch; }
+    .filtro-acciones { justify-content: space-between; }
+}

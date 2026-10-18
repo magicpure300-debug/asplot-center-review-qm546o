@@ -39,6 +39,7 @@ INDICES = [
     ('ix_proyectos_estado', 'proyectos', ['estado']),
     ('ix_proyectos_fecha_solicitud', 'proyectos', ['fecha_solicitud']),
     ('ix_proyectos_tipo_servicio', 'proyectos', ['tipo_servicio']),
+    ('ix_proyectos_presupuesto', 'proyectos', ['presupuesto']),
     ('ix_proyectos_estado_tipo', 'proyectos', ['estado', 'tipo_servicio']),
 
     # --- Planos (listados, búsqueda con JOIN) ---

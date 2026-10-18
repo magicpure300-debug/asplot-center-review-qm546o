@@ -127,6 +127,7 @@ class Proyecto(db.Model):
         db.Index('ix_proyectos_estado', 'estado'),
         db.Index('ix_proyectos_fecha_solicitud', 'fecha_solicitud'),
         db.Index('ix_proyectos_tipo_servicio', 'tipo_servicio'),
+        db.Index('ix_proyectos_presupuesto', 'presupuesto'),
         db.Index('ix_proyectos_estado_tipo', 'estado', 'tipo_servicio'),
     )
     

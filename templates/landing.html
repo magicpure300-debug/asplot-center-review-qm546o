@@ -23,6 +23,7 @@
                 <li><a href="#inicio">Inicio</a></li>
                 <li><a href="#nosotros">Nosotros</a></li>
                 <li><a href="#servicios">Servicios</a></li>
+                <li><a href="{{ url_for('portafolio') }}">Portafolio</a></li>
                 <li><a href="#ubicacion">Ubicación</a></li>
                 <li><a href="{{ url_for('registro') }}" class="btn-register">Registrarse</a></li>
                 <li><a href="{{ url_for('login') }}" class="btn-login">Iniciar Sesión</a></li>
@@ -211,8 +212,12 @@
                     </div>
                 </div>
                 <div class="location-map">
-                    <img src="{{ url_for('static', filename='images/mapa_ubicacion.png') }}"
-                        alt="Ubicación de ASPLOT CENTER">
+                    <picture>
+                        <source srcset="{{ url_for('static', filename='images/mapa_ubicacion.webp') }}"
+                                type="image/webp">
+                        <img src="{{ url_for('static', filename='images/mapa_ubicacion.png') }}"
+                            alt="Ubicación de ASPLOT CENTER" loading="lazy">
+                    </picture>
                 </div>
             </div>
         </div>
@@ -247,6 +252,7 @@
                         <li><a href="#inicio">Inicio</a></li>
                         <li><a href="#nosotros">Nosotros</a></li>
                         <li><a href="#servicios">Servicios</a></li>
+                        <li><a href="{{ url_for('portafolio') }}">Portafolio</a></li>
                         <li><a href="#ubicacion">Ubicación</a></li>
                     </ul>
                 </div>

@@ -7,7 +7,57 @@ from config import config
 import os
 from datetime import datetime, date
 from fpdf import FPDF
+from cachear import cache, cachear_ruta  # Sprint 3 - PB-06
 import io
+import gzip
+from io import BytesIO
+
+
+# =============================================================================
+# Sprint 3 (PB-07) - Compresión gzip para respuestas de texto
+# Middleware WSGI ligero: comprime HTML/CSS/JS/JSON/XML cuando el navegador
+# lo acepta (Accept-Encoding: gzip) y el cuerpo supera el umbral mínimo.
+# Reduce drásticamente el peso de plantillas y estáticos sin dependencias.
+# =============================================================================
+UMBRAL_GZIP = 512  # bytes mínimos para compensar la CPU de comprimir
+TIPOS_TEXTO = ('text/html', 'text/css', 'application/javascript',
+               'text/javascript', 'application/json', 'text/xml',
+               'image/svg+xml', 'text/plain')
+
+
+class CompresionGzip:
+    """Middleware WSGI de compresión gzip (solo si el cliente lo soporta)."""
+
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        if 'gzip' not in environ.get('HTTP_ACCEPT_ENCODING', ''):
+            return self.app(environ, start_response)
+
+        fragmentos = []
+        codigo = [200]
+        cabeceras = []
+
+        def inicio(status, headers, exc_info=None):
+            codigo[0] = int(status.split(' ', 1)[0])
+            cabeceras[:] = headers
+            return fragmentos.append
+
+        cuerpo = b''.join(self.app(environ, inicio))
+
+        tipo = dict((k.lower(), v) for k, v in cabeceras).get('content-type', '')
+        ya_comprimido = any(t in tipo for t in ('gzip', 'zip', 'pdf', 'png', 'jpeg'))
+        if (codigo[0] == 200 and len(cuerpo) >= UMBRAL_GZIP
+                and tipo.startswith(TIPOS_TEXTO) and not ya_comprimido):
+            cuerpo = gzip.compress(cuerpo, compresslevel=6)
+            cabeceras = [(k, v) for k, v in cabeceras if k.lower() != 'content-length']
+            cabeceras.append(('Content-Encoding', 'gzip'))
+            cabeceras.append(('Vary', 'Accept-Encoding'))
+
+        start_response(f'{codigo[0]} OK', cabeceras)
+        return [cuerpo]
+
 
 def create_app():
     """Factory function para crear la aplicación Flask"""
@@ -20,6 +70,22 @@ def create_app():
     
     # Inicializar extensiones
     db.init_app(app)
+    
+    # =========================================================================
+    # Sprint 3 (PB-06) - Invalidación automática de caché tras cada escritura
+    # Se engancha al evento after_commit de SQLAlchemy: cualquier INSERT /
+    # UPDATE / DELETE invalida las vistas cacheadas que dependen de esos
+    # datos (dashboard y reportes), garantizando consistencia sin tener que
+    # recordar la invalidación en cada ruta que escribe.
+    # =========================================================================
+    from sqlalchemy import event
+    from sqlalchemy.orm import Session
+    
+    @event.listens_for(Session, 'after_commit')
+    def _invalidar_caché_escrituras(trx):
+        cache.invalidar_contiene('dashboard')
+        cache.invalidar_contiene('reportes')
+        cache.invalidar_contiene('portafolio')
     
     # Configurar Flask-Login
     login_manager = LoginManager()
@@ -86,6 +152,53 @@ def create_app():
     @app.route('/')
     def landing():
         return render_template('landing.html')
+    
+    # =========================================================================
+    # Sprint 3 (PB-08) - PORTAFOLIO INTERACTIVO PÚBLICO
+    # Muestra los proyectos entregados/en curso (oculta el embudo interno:
+    # solicitado, cotizado, rechazado) con filtros por tipo de servicio y
+    # rango de presupuesto. Usa los índices del Sprint 2:
+    #   ix_proyectos_estado_tipo y ix_proyectos_tipo_servicio.
+    # Ruta pública (sin login): material comercial para atraer clientes.
+    # =========================================================================
+    @app.route('/portafolio')
+    @cachear_ruta(ttl=300)  # PB-06: 5 min; se invalida al escribir datos
+    def portafolio():
+        # Filtros de búsqueda
+        tipo_servicio = request.args.get('tipo', '')
+        presupuesto_min = request.args.get('presupuesto_min', type=float)
+        presupuesto_max = request.args.get('presupuesto_max', type=float)
+        
+        # Estados visibles al público (el resto es flujo interno de gestión)
+        estados_visibles = ('aprobado', 'en_progreso', 'ejecutado')
+        
+        query = Proyecto.query.options(
+            selectinload(Proyecto.cliente),
+            selectinload(Proyecto.planos).selectinload(Plano.tipo_plano),
+        ).filter(Proyecto.estado.in_(estados_visibles))
+        
+        if tipo_servicio:
+            query = query.filter(Proyecto.tipo_servicio == tipo_servicio)
+        if presupuesto_min is not None:
+            query = query.filter(Proyecto.presupuesto >= presupuesto_min)
+        if presupuesto_max is not None:
+            query = query.filter(Proyecto.presupuesto <= presupuesto_max)
+        
+        proyectos = query.order_by(Proyecto.fecha_solicitud.desc()).all()
+        
+        # Catálogo de tipos de servicio disponibles (para el filtro)
+        tipos_disponibles = [
+            valor for (valor,) in db.session.query(Proyecto.tipo_servicio)
+            .filter(Proyecto.estado.in_(estados_visibles))
+            .distinct().all()
+        ]
+        
+        return render_template('portafolio.html',
+                             proyectos=proyectos,
+                             tipos_disponibles=tipos_disponibles,
+                             tipo_servicio=tipo_servicio,
+                             presupuesto_min=presupuesto_min or '',
+                             presupuesto_max=presupuesto_max or '')
     
     # Rutas de autenticación
     @app.route('/login', methods=['GET', 'POST'])
@@ -167,6 +280,7 @@ def create_app():
     # Dashboard
     @app.route('/dashboard')
     @login_required
+    @cachear_ruta(ttl=60)  # Sprint 3 - PB-06: caché 60 s por usuario
     def dashboard():
         # Si es cliente, mostrar dashboard de cliente
         if current_user.es_cliente:
@@ -1182,6 +1296,7 @@ def create_app():
     # Gestión de Reportes
     @app.route('/reportes')
     @login_required
+    @cachear_ruta(ttl=120)  # Sprint 3 - PB-06: caché 120 s por usuario
     def reportes():
         return render_template('reportes.html')
     
@@ -1475,6 +1590,28 @@ def create_app():
     def allowed_file(filename):
         return '.' in filename and \
                filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+    
+    # =========================================================================
+    # Sprint 3 (PB-07) - Cabeceras HTTP de caché para archivos estáticos
+    # Los CSS/JS/imágenes tienen nombre estable: se cachean 7 días en el
+    # navegador. Los HTML siempre se revalidan (son dinámicos).
+    # =========================================================================
+    @app.after_request
+    def cabeceras_caché(respuesta):
+        if request.path.startswith('/static/'):
+            # 7 días = 604800 s; los planos subidos NO se cachean (son datos vivos)
+            if '/uploads/' not in request.path:
+                respuesta.headers['Cache-Control'] = 'public, max-age=604800'
+            else:
+                respuesta.headers['Cache-Control'] = 'no-cache'
+        elif request.path.endswith(('.html', '/')) or request.path == '':
+            respuesta.headers['Cache-Control'] = 'no-cache'
+        return respuesta
+    
+    # Compresión gzip de respuestas de texto (PB-07)
+    # Se envuelve la capa WSGI interna (no el objeto Flask) para conservar
+    # la API de Flask: app.run(), app.test_client(), etc.
+    app.wsgi_app = CompresionGzip(app.wsgi_app)
     
     return app
 

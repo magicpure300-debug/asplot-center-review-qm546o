@@ -2,6 +2,10 @@
 
 {% block title %}Detalle del Plano - As Plot Center{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/zoom.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>Detalle del Plano</h1>
@@ -11,6 +15,21 @@
         Volver a Planos
     </a>
 </div>
+
+{# Vista previa ampliable (Sprint 3 - PB-09): solo para imágenes #}
+{% if plano.archivo.lower().split('.')[-1] in ['png', 'jpg', 'jpeg', 'webp'] %}
+<div class="preview-zoom-seccion">
+    <img class="miniatura-zoomable preview-zoom-img"
+         src="{{ url_for('ver_plano', id=plano.id_plano) }}"
+         data-zoom-src="{{ url_for('ver_plano', id=plano.id_plano) }}"
+         data-zoom-titulo="{{ plano.nombre_plano }} — {{ plano.proyecto.nombre_proyecto }}"
+         alt="{{ plano.nombre_plano }}">
+    <p class="preview-zoom-ayuda">
+        <i class="fas fa-search-plus"></i>
+        Haz clic en la imagen para ampliarla a alta definición (zoom + arrastre)
+    </p>
+</div>
+{% endif %}
 
 <div class="detail-container">
     <div class="detail-card">
@@ -136,4 +155,49 @@
         </div>
     </div>
 </div>
+
+{# Visor de zoom HD (Sprint 3 - PB-09) #}
+<div id="zoom-overlay" class="zoom-overlay" hidden>
+    <div class="zoom-barra">
+        <span id="zoom-titulo" class="zoom-titulo"></span>
+        <div class="zoom-controles">
+            <button type="button" id="zoom-out" title="Alejar"><i class="fas fa-minus"></i></button>
+            <span id="zoom-nivel" class="zoom-nivel">100%</span>
+            <button type="button" id="zoom-in" title="Acercar"><i class="fas fa-plus"></i></button>
+            <button type="button" id="zoom-reset" title="Restablecer"><i class="fas fa-compress-arrows-alt"></i></button>
+            <button type="button" id="zoom-cerrar" title="Cerrar"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    <div id="zoom-contenedor" class="zoom-contenedor">
+        <img id="zoom-imagen" alt="Vista ampliada">
+    </div>
+    <p class="zoom-ayuda">Arrastra para mover · Rueda del ratón para zoom · Esc para cerrar</p>
+</div>
+
+<style>
+    .preview-zoom-seccion {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    .preview-zoom-img {
+        max-width: 100%;
+        max-height: 420px;
+        object-fit: contain;
+        border-radius: 12px;
+        border: 1px solid var(--borde, #e0e0e0);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        cursor: zoom-in;
+        background: #f7f8f7;
+    }
+    .preview-zoom-ayuda {
+        margin: 10px 0 0;
+        color: #777;
+        font-size: 0.85rem;
+    }
+    .preview-zoom-ayuda i { color: var(--verde, #2e7d32); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/zoom.js') }}"></script>
 {% endblock %}
