@@ -109,7 +109,9 @@ def create_app():
                 nombre_completo='Administrador del Sistema',
                 activo=True
             )
-            admin.set_password('admin123')
+            # Contraseña configurable por entorno (demo en la nube) con
+            # retrocompatibilidad para desarrollo local.
+            admin.set_password(os.environ.get('ADMIN_PASSWORD', 'admin123'))
             db.session.add(admin)
             
             # Crear tipos de plano por defecto
@@ -146,6 +148,63 @@ def create_app():
             )
             db.session.add(proyecto_ejemplo)
             
+            db.session.commit()
+        
+        # Siembra demo de materiales e inventario (idempotente).
+        # En despliegues con BD nueva (p. ej. Render) los módulos de
+        # inventario y cotización arrancarían vacíos sin este bloque.
+        if not Material.query.first():
+            materiales_demo = [
+                Material(nombre_material='Papel Bond A0 (rollo 90g)',
+                         descripcion='Rollo de papel bond A0 para planos',
+                         categoria='papel', subcategoria='A0',
+                         precio_unitario=25.00, precio_compra=18.00,
+                         unidad_medida='rollo', stock_minimo=5),
+                Material(nombre_material='Papel Bond A1 (rollo 90g)',
+                         descripcion='Rollo de papel bond A1 para planos',
+                         categoria='papel', subcategoria='A1',
+                         precio_unitario=18.00, precio_compra=13.00,
+                         unidad_medida='rollo', stock_minimo=5),
+                Material(nombre_material='Papel Bond A4 (resma 75g)',
+                         descripcion='Resma de papel bond A4',
+                         categoria='papel', subcategoria='A4',
+                         precio_unitario=4.50, precio_compra=3.20,
+                         unidad_medida='resma', stock_minimo=10),
+                Material(nombre_material='Tinta Negra (cartucho)',
+                         descripcion='Cartucho de tinta negra para plotter',
+                         categoria='tinta', subcategoria='negro',
+                         precio_unitario=60.00, precio_compra=45.00,
+                         unidad_medida='cartucho', stock_minimo=3),
+                Material(nombre_material='Tinta Color (cartucho)',
+                         descripcion='Cartucho de tinta color para plotter',
+                         categoria='tinta', subcategoria='color',
+                         precio_unitario=85.00, precio_compra=65.00,
+                         unidad_medida='cartucho', stock_minimo=3),
+                Material(nombre_material='Film Transparente A0',
+                         descripcion='Film de protección para planos',
+                         categoria='otro',
+                         precio_unitario=12.00, precio_compra=8.50,
+                         unidad_medida='metro', stock_minimo=8),
+            ]
+            for material in materiales_demo:
+                db.session.add(material)
+            db.session.flush()
+            # Cantidades: A1 y tinta negra quedan bajo el mínimo para que
+            # la demo muestre el estado de "reposición" del inventario.
+            existencias = [
+                (materiales_demo[0], 12, 'Bodega A'),
+                (materiales_demo[1], 4, 'Bodega A'),
+                (materiales_demo[2], 30, 'Bodega A'),
+                (materiales_demo[3], 2, 'Bodega B'),
+                (materiales_demo[4], 6, 'Bodega B'),
+                (materiales_demo[5], 20, 'Bodega A'),
+            ]
+            for material, cantidad, ubicacion in existencias:
+                db.session.add(Inventario(
+                    id_material=material.id_material,
+                    cantidad=cantidad,
+                    ubicacion=ubicacion
+                ))
             db.session.commit()
     
     # Landing Page (Página de inicio pública)

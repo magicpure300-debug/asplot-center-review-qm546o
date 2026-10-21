@@ -1,0 +1,17 @@
+# Blueprint de despliegue para Render (plan Hobby, $0/mes).
+# En Render: "New +" -> "Blueprint" -> conectar el repositorio de GitHub;
+# Render detecta este archivo y configura build, arranque y variables.
+services:
+  - type: web
+    name: asplot-center-demo
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: FLASK_CONFIG
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        generateValue: true

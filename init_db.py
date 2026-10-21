@@ -28,7 +28,8 @@ def init_database():
                 nombre_completo='Administrador del Sistema',
                 activo=True
             )
-            admin.set_password('admin123')
+            import os
+            admin.set_password(os.environ.get('ADMIN_PASSWORD', 'admin123'))
             db.session.add(admin)
             print("✅ Usuario admin creado")
             print("   Email: admin@asplot.com")
