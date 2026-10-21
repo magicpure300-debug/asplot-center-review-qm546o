@@ -6,6 +6,7 @@ services:
     name: asplot-center-demo
     runtime: python
     plan: free
+    branch: develop
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
     envVars:
