@@ -13,6 +13,8 @@ from fpdf import FPDF
 from cachear import cache, cachear_ruta  # Sprint 3 - PB-06
 import io
 import gzip
+import json
+import urllib.request
 from io import BytesIO
 
 
@@ -60,6 +62,28 @@ class CompresionGzip:
 
         start_response(f'{codigo[0]} OK', cabeceras)
         return [cuerpo]
+
+
+def _notificar_telegram(texto):
+    """Aviso opcional por Telegram (G60). Falla en silencio: nunca bloquea
+    ni rompe una solicitud pública si el bot no está configurado o sin red."""
+    token = os.environ.get('ASPLOT_TELEGRAM_TOKEN')
+    chat = os.environ.get('ASPLOT_TELEGRAM_CHAT')
+    if not token or not chat:
+        return False
+    try:
+        datos = json.dumps({'chat_id': int(chat), 'text': texto}).encode('utf-8')
+        peticion = urllib.request.Request(
+            f'https://api.telegram.org/bot{token}/sendMessage',
+            data=datos,
+            headers={'Content-Type': 'application/json'}
+        )
+        urllib.request.urlopen(peticion, timeout=6)
+        print('aviso telegram enviado', flush=True)
+        return True
+    except Exception as error:
+        print('aviso telegram fallo:', repr(error)[:120], flush=True)
+        return False
 
 
 def create_app():
@@ -694,6 +718,18 @@ def create_app():
 
             db.session.add(proyecto)
             db.session.commit()
+
+            # Aviso al dueño por Telegram (si está configurado en el entorno)
+            _notificar_telegram(
+                'Nueva solicitud web #%s\n'
+                '%s %s — %s\n'
+                'Proyecto: %s\n'
+                'Tel: %s · %s\n'
+                'Ver: /solicitudes'
+                % (proyecto.id_proyecto, datos['nombre'], datos['apellido'],
+                   datos['tipo_servicio'], datos['nombre_proyecto'],
+                   datos['telefono'], datos['email'])
+            )
 
             return redirect(url_for('solicitud_enviada', id=proyecto.id_proyecto))
 
