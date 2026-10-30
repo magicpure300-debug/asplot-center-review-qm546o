@@ -116,5 +116,7 @@ escenario que el arranque en frío de Render): **29 comprobaciones en verde**.
   propio contador; para producción multi-instancia se movería a Redis.
 - **Sin CSRF global:** se compensa con honeypot, límite por IP y validación;
   un token CSRF simple por sesión queda como mejora.
-- **Notificaciones:** no se envía email/SMS real; la confirmación es en
-  pantalla y el aviso al admin es la bandeja + contador.
+- **Notificaciones:** no se envía email/SMS real. En el servidor propio (G60)
+  sí hay aviso opcional por **Telegram** al recibir una solicitud: se activa
+  con `ASPLOT_TELEGRAM_TOKEN` y `ASPLOT_TELEGRAM_CHAT` en el entorno; si no
+  están definidas, la solicitud funciona igual (el aviso falla en silencio).
