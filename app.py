@@ -5,6 +5,9 @@ from models import db, Usuario, Cliente, Proyecto, TipoPlano, Plano, Material, I
 from sqlalchemy.orm import selectinload, joinedload  # Sprint 2 - PB-04 (evitar N+1)
 from config import config
 import os
+import re
+import threading
+import time
 from datetime import datetime, date
 from fpdf import FPDF
 from cachear import cache, cachear_ruta  # Sprint 3 - PB-06
@@ -363,8 +366,15 @@ def create_app():
             db.session.query(db.func.count(Proyecto.id_proyecto))
         ).union_all(
             db.session.query(db.func.count(Plano.id_plano))
+        ).union_all(
+            # Sprint 4 (PB-14): solicitudes online pendientes de atender
+            db.session.query(db.func.count(Proyecto.id_proyecto)).filter(
+                Proyecto.estado == 'solicitado'
+            )
         ).all()
-        total_clientes, total_proyectos, total_planos = (f[0] for f in filas_conteo)
+        total_clientes, total_proyectos, total_planos, total_solicitudes = (
+            fila[0] for fila in filas_conteo
+        )
         
         # Calcular total de insumos (suma de cantidades)
         total_insumos = db.session.query(db.func.sum(Inventario.cantidad)).scalar() or 0
@@ -389,25 +399,40 @@ def create_app():
                              total_planos=total_planos,
                              total_insumos=total_insumos,
                              total_facturas=total_facturas,
+                             total_solicitudes=total_solicitudes,
                              proyectos_recientes=proyectos_recientes)
     
     # Gestión de Clientes
     @app.route('/clientes')
     @login_required
     def clientes():
-        search = request.args.get('search', '')
+        search = request.args.get('search', '').strip()
+        page = request.args.get('page', 1, type=int)
+
+        consulta = Cliente.query
         if search:
-            clientes = Cliente.query.filter(
+            patron = f'%{search}%'
+            # Sprint 4 (PB-15): búsqueda ampliada a teléfono
+            consulta = consulta.filter(
                 db.or_(
-                    Cliente.nombre.contains(search),
-                    Cliente.apellido.contains(search),
-                    Cliente.email.contains(search)
+                    Cliente.nombre.ilike(patron),
+                    Cliente.apellido.ilike(patron),
+                    Cliente.email.ilike(patron),
+                    Cliente.telefono.ilike(patron)
                 )
-            ).all()
-        else:
-            clientes = Cliente.query.all()
-        
-        return render_template('clientes.html', clientes=clientes, search=search)
+            )
+
+        # Sprint 4 (PB-15): paginación de 25 por página
+        paginacion = consulta.order_by(Cliente.apellido, Cliente.nombre).paginate(
+            page=page, per_page=25, error_out=False
+        )
+
+        return render_template(
+            'clientes.html',
+            clientes=paginacion.items,
+            paginacion=paginacion,
+            search=search
+        )
     
     @app.route('/clientes/crear', methods=['GET', 'POST'])
     @login_required
@@ -448,10 +473,257 @@ def create_app():
     @login_required
     def eliminar_cliente(id):
         cliente = Cliente.query.get_or_404(id)
+
+        # Sprint 4 (PB-15): integridad referencial — no borrar con historial
+        if cliente.proyectos or cliente.facturas:
+            flash(
+                'No se puede eliminar el cliente: tiene proyectos o facturas '
+                'asociadas. Elimine o reasigne ese historial primero.',
+                'error'
+            )
+            return redirect(url_for('detalle_cliente', id=cliente.id_cliente))
+
         db.session.delete(cliente)
         db.session.commit()
         flash('Cliente eliminado exitosamente', 'success')
         return redirect(url_for('clientes'))
+
+    @app.route('/clientes/<int:id>')
+    @login_required
+    def detalle_cliente(id):
+        """Sprint 4 (PB-15): ficha de cliente 360° (datos, historial y saldos)."""
+        if not (current_user.es_admin or current_user.es_trabajador):
+            flash('No tienes permiso para ver esta ficha', 'error')
+            return redirect(url_for('dashboard'))
+
+        cliente = Cliente.query.get_or_404(id)
+
+        proyectos = Proyecto.query.filter_by(
+            id_cliente=id
+        ).order_by(Proyecto.fecha_solicitud.desc()).all()
+
+        facturas = Factura.query.filter_by(
+            id_cliente=id
+        ).order_by(Factura.fecha_factura.desc()).all()
+
+        # Totales en una sola consulta agregada (sin N+1)
+        totales = db.session.query(
+            db.func.coalesce(db.func.sum(Factura.total), 0),
+            db.func.coalesce(db.func.sum(
+                db.case((Factura.estado_pago == 'pagada', Factura.total), else_=0)
+            ), 0),
+            db.func.coalesce(db.func.sum(
+                db.case(
+                    (Factura.estado_pago.in_(('pendiente', 'vencida')), Factura.total),
+                    else_=0
+                )
+            ), 0)
+        ).filter(
+            Factura.id_cliente == id,
+            Factura.estado_pago != 'cancelada'
+        ).one()
+
+        total_facturado, total_pagado, total_pendiente = (
+            float(total or 0) for total in totales
+        )
+
+        return render_template(
+            'detalle_cliente.html',
+            cliente=cliente,
+            proyectos=proyectos,
+            facturas=facturas,
+            total_facturado=total_facturado,
+            total_pagado=total_pagado,
+            total_pendiente=total_pendiente
+        )
+
+    # =========================================================================
+    # SPRINT 4 (PB-14) - SOLICITUDES ONLINE SIN CUENTA
+    # =========================================================================
+
+    TIPOS_SERVICIO_VALIDOS = ('render', 'topografia', 'plano', 'correccion')
+    _limites_solicitud = {}
+    _limites_lock = threading.Lock()
+
+    def _limitar_solicitudes(ip):
+        """Máximo 3 solicitudes por IP cada 10 minutos (ventana deslizante)."""
+        ahora = time.time()
+        ventana = 600
+        maximo = 3
+        with _limites_lock:
+            marcas = [m for m in _limites_solicitud.get(ip, []) if ahora - m < ventana]
+            if len(marcas) >= maximo:
+                _limites_solicitud[ip] = marcas
+                espera = max(1, int(ventana - (ahora - marcas[0])) + 1)
+                return False, espera
+            marcas.append(ahora)
+            _limites_solicitud[ip] = marcas
+        return True, 0
+
+    def _obtener_o_crear_cliente(datos):
+        """Reutiliza el cliente por email (sin duplicados) o lo crea."""
+        cliente = Cliente.query.filter(
+            db.func.lower(Cliente.email) == datos['email'].lower()
+        ).first()
+
+        if cliente:
+            if not cliente.telefono and datos.get('telefono'):
+                cliente.telefono = datos['telefono']
+            if not cliente.direccion and datos.get('direccion'):
+                cliente.direccion = datos['direccion']
+            return cliente
+
+        usuario = Usuario.query.filter(
+            db.func.lower(Usuario.email) == datos['email'].lower()
+        ).first()
+
+        cliente = Cliente(
+            nombre=datos['nombre'],
+            apellido=datos['apellido'],
+            email=datos['email'],
+            telefono=datos['telefono'],
+            direccion=datos['direccion'],
+            id_usuario=usuario.id_usuario if usuario else None
+        )
+        db.session.add(cliente)
+        db.session.flush()
+        return cliente
+
+    def _validar_solicitud(form):
+        campos = (
+            'nombre', 'apellido', 'email', 'telefono', 'direccion',
+            'tipo_servicio', 'nombre_proyecto', 'descripcion'
+        )
+        datos = {campo: (form.get(campo) or '').strip() for campo in campos}
+        datos['email'] = datos['email'].lower()
+        errores = {}
+
+        for campo, etiqueta in (
+            ('nombre', 'El nombre'), ('apellido', 'El apellido'),
+            ('telefono', 'El teléfono'), ('direccion', 'La dirección'),
+            ('nombre_proyecto', 'El nombre del proyecto'),
+            ('descripcion', 'La descripción')
+        ):
+            if not datos[campo]:
+                errores[campo] = f'{etiqueta} es obligatorio.'
+
+        if not datos['email']:
+            errores['email'] = 'El email es obligatorio.'
+        elif not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', datos['email']):
+            errores['email'] = 'Ingrese un email válido.'
+
+        if datos['tipo_servicio'] not in TIPOS_SERVICIO_VALIDOS:
+            errores['tipo_servicio'] = 'Seleccione un tipo de servicio válido.'
+
+        return datos, errores
+
+    def _guardar_adjunto_solicitud(archivo, errores):
+        """Valida y guarda el adjunto (10 MB). Devuelve nombre o None."""
+        if not archivo or not archivo.filename:
+            return None
+
+        if not allowed_file(archivo.filename):
+            errores['archivo_solicitud'] = (
+                'Formato no permitido. Use PDF, DWG, DXF, JPG o PNG.'
+            )
+            return None
+
+        # Tamaño real del archivo (máximo 10 MB para solicitudes públicas)
+        archivo.seek(0, os.SEEK_END)
+        tamano = archivo.tell()
+        archivo.seek(0)
+        if tamano > 10 * 1024 * 1024:
+            errores['archivo_solicitud'] = 'El archivo supera el límite de 10 MB.'
+            return None
+
+        filename = secure_filename(archivo.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{filename}"
+
+        upload_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'solicitudes')
+        os.makedirs(upload_folder, exist_ok=True)
+        archivo.save(os.path.join(upload_folder, filename))
+        return filename
+
+    @app.route('/solicitud', methods=['GET', 'POST'])
+    def solicitud_publica():
+        """
+        Sprint 4 (PB-14): solicitud de servicio online sin necesidad de cuenta.
+        Crea o reutiliza el cliente por email y registra el proyecto como
+        'solicitado'. Cualquier dato de control del POST se ignora.
+        """
+        if request.method == 'POST':
+            # Honeypot: si el campo oculto llega completo, se descarta en silencio
+            if (request.form.get('sitio_web') or '').strip():
+                return render_template(
+                    'solicitud_confirmacion.html', proyecto=None, generica=True
+                )
+
+            permitido, espera = _limitar_solicitudes(
+                request.remote_addr or 'desconocida'
+            )
+            if not permitido:
+                return render_template(
+                    'solicitud_publica.html',
+                    datos=request.form,
+                    errores={'__global__': (
+                        f'Ha enviado varias solicitudes seguidas. '
+                        f'Intente de nuevo en {espera} segundos.'
+                    )}
+                ), 429
+
+            datos, errores = _validar_solicitud(request.form)
+            archivo = request.files.get('archivo_solicitud')
+            archivo_path = _guardar_adjunto_solicitud(archivo, errores)
+
+            if errores:
+                return render_template(
+                    'solicitud_publica.html', datos=datos, errores=errores
+                ), 400
+
+            cliente = _obtener_o_crear_cliente(datos)
+            proyecto = Proyecto(
+                id_cliente=cliente.id_cliente,
+                nombre_proyecto=datos['nombre_proyecto'],
+                descripcion=datos['descripcion'],
+                tipo_servicio=datos['tipo_servicio'],
+                archivo_solicitud=archivo_path,
+                estado='solicitado',
+                fecha_solicitud=datetime.utcnow()
+            )
+
+            db.session.add(proyecto)
+            db.session.commit()
+
+            return redirect(url_for('solicitud_enviada', id=proyecto.id_proyecto))
+
+        return render_template('solicitud_publica.html', datos={}, errores={})
+
+    @app.route('/solicitud/enviada/<int:id>')
+    def solicitud_enviada(id):
+        """Confirmación pública de la solicitud (sin datos sensibles)."""
+        proyecto = Proyecto.query.get_or_404(id)
+        return render_template(
+            'solicitud_confirmacion.html', proyecto=proyecto, generica=False
+        )
+
+    @app.route('/solicitudes')
+    @login_required
+    def solicitudes():
+        """Bandeja de solicitudes online pendientes (admin/gestor)."""
+        if not (current_user.es_admin or current_user.es_trabajador):
+            flash('No tienes permiso para ver las solicitudes', 'error')
+            return redirect(url_for('dashboard'))
+
+        pendientes = Proyecto.query.options(
+            joinedload(Proyecto.cliente)
+        ).filter_by(
+            estado='solicitado'
+        ).order_by(
+            Proyecto.fecha_solicitud.desc()
+        ).all()
+
+        return render_template('solicitudes.html', solicitudes=pendientes)
     
     # Gestión de Proyectos
 # =============================================================================
@@ -1252,7 +1524,10 @@ def create_app():
         clientes = Cliente.query.all()
         # Pasar proyectos aprobados para seleccionar
         proyectos = Proyecto.query.filter_by(estado='aprobado').all()
-        return render_template('crear_factura.html', clientes=clientes, proyectos=proyectos)
+        # Sprint 4 (PB-15): permitir crear factura precargando el cliente
+        id_cliente_pre = request.args.get('cliente', type=int)
+        return render_template('crear_factura.html', clientes=clientes,
+                               proyectos=proyectos, id_cliente_pre=id_cliente_pre)
     
     @app.route('/facturas/ver/<int:id>')
     @login_required

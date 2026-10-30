@@ -59,6 +59,15 @@
                             Clientes
                         </a>
                     </li>
+
+                    <!-- Solicitudes online - Solo Admin y Trabajador (Sprint 4) -->
+                    <li
+                        class="nav-item {% if request.endpoint == 'solicitudes' %}active{% endif %}">
+                        <a href="{{ url_for('solicitudes') }}">
+                            <i class="fas fa-inbox"></i>
+                            Solicitudes
+                        </a>
+                    </li>
                     {% endif %}
 
                     <!-- Proyectos - Visible para todos (clientes solicitan, admin/trabajador gestionan) -->

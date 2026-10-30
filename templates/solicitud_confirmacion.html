@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud recibida - ASPLOT CENTER</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f8;
+            color: #2c3e50;
+        }
+
+        .public-header {
+            background: #1a2a3a;
+            color: #fff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .public-header a {
+            color: #fff;
+            margin-left: 1.25rem;
+            text-decoration: none;
+            opacity: .9;
+        }
+
+        .public-container {
+            max-width: 640px;
+            margin: 3rem auto;
+            padding: 0 1.25rem 3rem;
+        }
+
+        .confirm-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .08);
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }
+
+        .confirm-icon {
+            font-size: 3rem;
+            color: #20c997;
+            margin-bottom: 1rem;
+        }
+
+        .confirm-card h1 {
+            margin: 0 0 .75rem;
+            color: #1a2a3a;
+            font-size: 1.6rem;
+        }
+
+        .confirm-card p {
+            color: #5d6d7e;
+            line-height: 1.5;
+        }
+
+        .numero-solicitud {
+            display: inline-block;
+            margin: 1.25rem 0;
+            padding: .6rem 1.2rem;
+            background: #eafaf1;
+            border: 1px solid #a9dfbf;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #117a65;
+            font-size: 1.1rem;
+        }
+
+        .detalle-solicitud {
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+
+        .detalle-solicitud div {
+            margin: .35rem 0;
+        }
+
+        .boton {
+            display: inline-block;
+            margin-top: 1rem;
+            background: #20c997;
+            color: #fff;
+            text-decoration: none;
+            padding: .8rem 1.4rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .boton:hover {
+            background: #17a589;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="public-header">
+        <strong>ASPLOT CENTER</strong>
+        <nav>
+            <a href="{{ url_for('landing') }}">Inicio</a>
+            <a href="{{ url_for('login') }}">Iniciar sesión</a>
+        </nav>
+    </header>
+
+    <main class="public-container">
+        <div class="confirm-card">
+            <div class="confirm-icon"><i class="fas fa-check-circle"></i></div>
+            <h1>Solicitud recibida</h1>
+
+            {% if proyecto %}
+            <div class="numero-solicitud">
+                N.º de solicitud: #{{ proyecto.id_proyecto }}
+            </div>
+
+            <div class="detalle-solicitud">
+                <div><strong>Proyecto:</strong> {{ proyecto.nombre_proyecto }}</div>
+                <div><strong>Servicio:</strong> {{ proyecto.tipo_servicio|capitalize }}</div>
+                <div><strong>Fecha:</strong> {{ proyecto.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}</div>
+            </div>
+
+            <p>
+                Un asesor de ASPLOT CENTER se contactará con usted al teléfono o
+                email indicado para coordinar la cotización.
+            </p>
+            {% else %}
+            <p>
+                Gracias por escribirnos. Si su solicitud fue registrada, un asesor
+                se contactará con usted al teléfono o email indicado.
+            </p>
+            {% endif %}
+
+            <a href="{{ url_for('landing') }}" class="boton">Volver al inicio</a>
+        </div>
+    </main>
+</body>
+
+</html>

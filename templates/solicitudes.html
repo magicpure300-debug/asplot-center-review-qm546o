@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block title %}Solicitudes - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Solicitudes online</h1>
+    <p>Solicitudes recibidas desde el formulario público, pendientes de atender</p>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>N.º</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Contacto</th>
+                <th>Servicio</th>
+                <th>Proyecto</th>
+                <th>Adjunto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for solicitud in solicitudes %}
+            <tr>
+                <td>#{{ solicitud.id_proyecto }}</td>
+                <td>{{ solicitud.fecha_solicitud.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                    {% if solicitud.cliente %}
+                    <a href="{{ url_for('detalle_cliente', id=solicitud.cliente.id_cliente) }}">
+                        {{ solicitud.cliente.nombre_completo }}
+                    </a>
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if solicitud.cliente %}
+                    <div>{{ solicitud.cliente.email }}</div>
+                    <div>{{ solicitud.cliente.telefono }}</div>
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+                <td>{{ solicitud.tipo_servicio|capitalize }}</td>
+                <td>{{ solicitud.nombre_proyecto }}</td>
+                <td>
+                    {% if solicitud.archivo_solicitud %}
+                    <span class="badge badge-green">Sí</span>
+                    {% else %}
+                    <span class="badge">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('aprobar_proyecto', id=solicitud.id_proyecto) }}"
+                            class="btn btn-sm btn-green">
+                            <i class="fas fa-check"></i> Atender
+                        </a>
+                        <form action="{{ url_for('rechazar_proyecto', id=solicitud.id_proyecto) }}"
+                            method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-red"
+                                onclick="return confirm('¿Rechazar esta solicitud?');">
+                                <i class="fas fa-times"></i> Rechazar
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="8" style="text-align:center; padding: 2rem;">
+                    No hay solicitudes pendientes.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

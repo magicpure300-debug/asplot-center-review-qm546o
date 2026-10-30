@@ -16,7 +16,7 @@
     <form method="GET" class="search-form">
         <div class="search-input">
             <i class="fas fa-search"></i>
-            <input type="text" name="search" placeholder="Buscar Cliente por nombre, empresa..." value="{{ search }}">
+            <input type="text" name="search" placeholder="Buscar por nombre, email o teléfono..." value="{{ search }}">
         </div>
     </form>
 </div>
@@ -38,7 +38,9 @@
             <tr>
                 <td>
                     <div class="client-info">
-                        <strong>{{ cliente.nombre_completo }}</strong>
+                        <a href="{{ url_for('detalle_cliente', id=cliente.id_cliente) }}">
+                            <strong>{{ cliente.nombre_completo }}</strong>
+                        </a>
                         <span>{{ cliente.email }}</span>
                     </div>
                 </td>
@@ -78,5 +80,21 @@
         </tbody>
     </table>
 </div>
+
+{% if paginacion and paginacion.pages > 1 %}
+<div style="display:flex; justify-content:center; align-items:center; gap:1rem; margin-top:1.25rem;">
+    {% if paginacion.has_prev %}
+    <a href="{{ url_for('clientes', page=paginacion.prev_num, search=search) }}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-chevron-left"></i> Anterior
+    </a>
+    {% endif %}
+    <span>Página {{ paginacion.page }} de {{ paginacion.pages }}</span>
+    {% if paginacion.has_next %}
+    <a href="{{ url_for('clientes', page=paginacion.next_num, search=search) }}" class="btn btn-sm btn-secondary">
+        Siguiente <i class="fas fa-chevron-right"></i>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}
 

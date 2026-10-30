@@ -22,6 +22,18 @@
             </div>
         </div>
 
+        <!-- Solicitudes online (Sprint 4 - PB-14) -->
+        <a href="{{ url_for('solicitudes') }}" class="kpi-card kpi-unified"
+            style="display:block; text-decoration:none; color:inherit;">
+            <div class="kpi-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <div class="kpi-content">
+                <h3>Solicitudes</h3>
+                <span class="kpi-number">{{ total_solicitudes }}</span>
+            </div>
+        </a>
+
         <!-- Proyectos -->
         <div class="kpi-card kpi-unified">
             <div class="kpi-icon">

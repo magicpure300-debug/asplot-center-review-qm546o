@@ -21,7 +21,8 @@
                 <select id="id_cliente" name="id_cliente" class="form-control" required>
                     <option value="">Seleccione un cliente</option>
                     {% for cliente in clientes %}
-                    <option value="{{ cliente.id_cliente }}">
+                    <option value="{{ cliente.id_cliente }}"
+                        {% if id_cliente_pre and id_cliente_pre == cliente.id_cliente %}selected{% endif %}>
                         {{ cliente.nombre_completo }} - {{ cliente.email }}
                     </option>
                     {% endfor %}

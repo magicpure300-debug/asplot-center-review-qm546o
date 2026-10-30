@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar cotización - ASPLOT CENTER</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f8;
+            color: #2c3e50;
+        }
+
+        .public-header {
+            background: #1a2a3a;
+            color: #fff;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .public-header a {
+            color: #fff;
+            margin-left: 1.25rem;
+            text-decoration: none;
+            opacity: .9;
+        }
+
+        .public-header a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .public-container {
+            max-width: 820px;
+            margin: 2.5rem auto;
+            padding: 0 1.25rem 3rem;
+        }
+
+        .public-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .08);
+            padding: 2rem;
+        }
+
+        .public-card h1 {
+            margin-top: 0;
+            color: #1a2a3a;
+        }
+
+        .public-card p.lead {
+            color: #5d6d7e;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: .35rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: .7rem .8rem;
+            border: 1px solid #d5dbe1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #20c997;
+            box-shadow: 0 0 0 3px rgba(32, 201, 151, .15);
+        }
+
+        .campo-error {
+            color: #c0392b;
+            font-size: .9rem;
+            margin-top: .25rem;
+        }
+
+        .alerta-error {
+            background: #fdecea;
+            border: 1px solid #f5b7b1;
+            color: #922b21;
+            padding: .9rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.2rem;
+        }
+
+        .fila-doble {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .honeypot {
+            position: absolute;
+            left: -9999px;
+            height: 1px;
+            width: 1px;
+            overflow: hidden;
+        }
+
+        .boton-enviar {
+            background: #20c997;
+            color: #fff;
+            border: none;
+            padding: .85rem 1.6rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .boton-enviar:hover {
+            background: #17a589;
+        }
+
+        .boton-volver {
+            color: #5d6d7e;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+
+        @media (max-width: 600px) {
+            .fila-doble {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="public-header">
+        <strong>ASPLOT CENTER</strong>
+        <nav>
+            <a href="{{ url_for('landing') }}">Inicio</a>
+            <a href="{{ url_for('login') }}">Iniciar sesión</a>
+        </nav>
+    </header>
+
+    <main class="public-container">
+        <div class="public-card">
+            <h1>Solicitar cotización</h1>
+            <p class="lead">
+                Cuéntenos qué necesita y un asesor se contactará con usted.
+                No necesita crear una cuenta.
+            </p>
+
+            {% if errores.__global__ %}
+            <div class="alerta-error" role="alert">
+                <i class="fas fa-exclamation-circle"></i> {{ errores.__global__ }}
+            </div>
+            {% endif %}
+
+            <form action="{{ url_for('solicitud_publica') }}" method="POST"
+                enctype="multipart/form-data" novalidate>
+
+                <!-- Honeypot anti-spam: invisible para personas -->
+                <div class="honeypot" aria-hidden="true">
+                    <label for="sitio_web">Sitio web</label>
+                    <input type="text" name="sitio_web" id="sitio_web" tabindex="-1"
+                        autocomplete="off">
+                </div>
+
+                <div class="fila-doble">
+                    <div class="form-group">
+                        <label for="nombre">Nombre *</label>
+                        <input type="text" name="nombre" id="nombre" maxlength="50"
+                            value="{{ datos.get('nombre', '') }}" required>
+                        {% if errores.nombre %}<div class="campo-error">{{ errores.nombre }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="apellido">Apellido *</label>
+                        <input type="text" name="apellido" id="apellido" maxlength="50"
+                            value="{{ datos.get('apellido', '') }}" required>
+                        {% if errores.apellido %}<div class="campo-error">{{ errores.apellido }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="fila-doble">
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" name="email" id="email" maxlength="100"
+                            value="{{ datos.get('email', '') }}" required>
+                        {% if errores.email %}<div class="campo-error">{{ errores.email }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel" name="telefono" id="telefono" maxlength="20"
+                            value="{{ datos.get('telefono', '') }}" required>
+                        {% if errores.telefono %}<div class="campo-error">{{ errores.telefono }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="direccion">Dirección *</label>
+                    <input type="text" name="direccion" id="direccion"
+                        value="{{ datos.get('direccion', '') }}" required>
+                    {% if errores.direccion %}<div class="campo-error">{{ errores.direccion }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="tipo_servicio">Tipo de servicio *</label>
+                    <select name="tipo_servicio" id="tipo_servicio" required>
+                        <option value="">Seleccione un servicio...</option>
+                        <option value="render" {% if datos.get('tipo_servicio') == 'render' %}selected{% endif %}>
+                            Render 3D</option>
+                        <option value="topografia" {% if datos.get('tipo_servicio') == 'topografia' %}selected{% endif %}>
+                            Topografía</option>
+                        <option value="plano" {% if datos.get('tipo_servicio') == 'plano' %}selected{% endif %}>
+                            Elaboración de Plano</option>
+                        <option value="correccion" {% if datos.get('tipo_servicio') == 'correccion' %}selected{% endif %}>
+                            Corrección de Plano</option>
+                    </select>
+                    {% if errores.tipo_servicio %}<div class="campo-error">{{ errores.tipo_servicio }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre_proyecto">Nombre del proyecto *</label>
+                    <input type="text" name="nombre_proyecto" id="nombre_proyecto" maxlength="100"
+                        placeholder="Ej: Casa Moderna 2 Plantas"
+                        value="{{ datos.get('nombre_proyecto', '') }}" required>
+                    {% if errores.nombre_proyecto %}<div class="campo-error">{{ errores.nombre_proyecto }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcion">Descripción del proyecto *</label>
+                    <textarea name="descripcion" id="descripcion" rows="5"
+                        placeholder="Describa dimensiones, materiales, detalles especiales..."
+                        required>{{ datos.get('descripcion', '') }}</textarea>
+                    {% if errores.descripcion %}<div class="campo-error">{{ errores.descripcion }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="archivo_solicitud">Archivo adjunto (opcional)</label>
+                    <input type="file" name="archivo_solicitud" id="archivo_solicitud"
+                        accept=".pdf,.dwg,.dxf,.jpg,.jpeg,.png">
+                    <small>Formatos: PDF, DWG, DXF, JPG o PNG. Máximo 10 MB.</small>
+                    {% if errores.archivo_solicitud %}<div class="campo-error">{{ errores.archivo_solicitud }}</div>{% endif %}
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; align-items: center;">
+                    <a href="{{ url_for('landing') }}" class="boton-volver">Cancelar</a>
+                    <button type="submit" class="boton-enviar">
+                        <i class="fas fa-paper-plane"></i> Enviar solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+
+</html>

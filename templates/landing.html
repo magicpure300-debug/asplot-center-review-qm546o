@@ -45,13 +45,13 @@
                 en el corazón de Maturín, Estado Monagas.
             </p>
             <div class="hero-buttons">
-                <a href="{{ url_for('login') }}" class="btn btn-primary">
+                <a href="{{ url_for('solicitud_publica') }}" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i>
+                    Solicitar cotización
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-secondary">
                     <i class="fas fa-sign-in-alt"></i>
                     Acceder al Sistema
-                </a>
-                <a href="#servicios" class="btn btn-secondary">
-                    <i class="fas fa-info-circle"></i>
-                    Conocer Más
                 </a>
             </div>
         </div>
@@ -227,8 +227,12 @@
     <section class="cta">
         <div class="container">
             <h2>¿Listo para comenzar tu proyecto?</h2>
-            <p>Accede a nuestro sistema para gestionar tus proyectos y solicitudes de servicio.</p>
-            <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">
+            <p>Solicita tu cotización en línea o accede al sistema para gestionar tus proyectos.</p>
+            <a href="{{ url_for('solicitud_publica') }}" class="btn btn-primary btn-large">
+                <i class="fas fa-paper-plane"></i>
+                Solicitar cotización
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-large">
                 <i class="fas fa-sign-in-alt"></i>
                 Acceder al Sistema
             </a>

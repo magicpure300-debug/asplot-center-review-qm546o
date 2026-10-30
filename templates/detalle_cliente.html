@@ -1,0 +1,170 @@
+{% extends "layout.html" %}
+
+{% block title %}Cliente: {{ cliente.nombre_completo }} - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{{ cliente.nombre_completo }}</h1>
+    <p>Ficha del cliente: datos, historial y saldos</p>
+</div>
+
+<div class="action-buttons" style="margin-bottom: 1.5rem;">
+    <a href="{{ url_for('clientes') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a clientes
+    </a>
+    <a href="{{ url_for('editar_cliente', id=cliente.id_cliente) }}" class="btn btn-blue">
+        <i class="fas fa-edit"></i> Editar datos
+    </a>
+    <a href="{{ url_for('crear_factura') }}?cliente={{ cliente.id_cliente }}" class="btn btn-primary">
+        <i class="fas fa-file-invoice-dollar"></i> Crear factura
+    </a>
+</div>
+
+<!-- Datos de contacto -->
+<div class="table-container" style="margin-bottom: 1.5rem;">
+    <table class="data-table">
+        <tbody>
+            <tr>
+                <th style="width: 220px;">Email</th>
+                <td>{{ cliente.email }}</td>
+            </tr>
+            <tr>
+                <th>Teléfono</th>
+                <td>{{ cliente.telefono }}</td>
+            </tr>
+            <tr>
+                <th>Dirección</th>
+                <td>{{ cliente.direccion }}</td>
+            </tr>
+            <tr>
+                <th>Usuario vinculado</th>
+                <td>
+                    {% if cliente.id_usuario %}
+                    <span class="badge badge-green">Sí</span>
+                    {% else %}
+                    <span class="badge">Sin cuenta</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Totales -->
+<div class="kpi-section" style="margin-bottom: 1.5rem;">
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-content">
+                <h3>Total facturado</h3>
+                <span class="kpi-number">${{ '%.2f'|format(total_facturado) }}</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-content">
+                <h3>Total pagado</h3>
+                <span class="kpi-number">${{ '%.2f'|format(total_pagado) }}</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-content">
+                <h3>Saldo pendiente</h3>
+                <span class="kpi-number">${{ '%.2f'|format(total_pendiente) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Proyectos -->
+<h2>Proyectos ({{ proyectos|length }})</h2>
+<div class="table-container" style="margin-bottom: 1.5rem;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>N.º</th>
+                <th>Solicitud</th>
+                <th>Proyecto</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Presupuesto</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proyecto in proyectos %}
+            <tr>
+                <td>#{{ proyecto.id_proyecto }}</td>
+                <td>{{ proyecto.fecha_solicitud.strftime('%d/%m/%Y') }}</td>
+                <td>{{ proyecto.nombre_proyecto }}</td>
+                <td>{{ proyecto.tipo_servicio|capitalize }}</td>
+                <td>{{ proyecto.estado|capitalize }}</td>
+                <td>
+                    {% if proyecto.presupuesto %}
+                    ${{ '%.2f'|format(proyecto.presupuesto) }}
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('detalle_proyecto', id=proyecto.id_proyecto) }}"
+                        class="btn btn-sm btn-blue">
+                        <i class="fas fa-eye"></i> Ver
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center; padding: 1.5rem;">
+                    Este cliente aún no tiene proyectos.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Facturas -->
+<h2>Facturas ({{ facturas|length }})</h2>
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>N.º</th>
+                <th>Fecha</th>
+                <th>Vencimiento</th>
+                <th>Total</th>
+                <th>Estado de pago</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for factura in facturas %}
+            <tr>
+                <td>#{{ factura.id_factura }}</td>
+                <td>{{ factura.fecha_factura.strftime('%d/%m/%Y') }}</td>
+                <td>
+                    {% if factura.fecha_vencimiento %}
+                    {{ factura.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                    {% else %}
+                    —
+                    {% endif %}
+                </td>
+                <td>${{ '%.2f'|format(factura.total) }}</td>
+                <td>{{ factura.estado_pago|capitalize }}</td>
+                <td>
+                    <a href="{{ url_for('ver_factura', id=factura.id_factura) }}"
+                        class="btn btn-sm btn-blue">
+                        <i class="fas fa-eye"></i> Ver
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align:center; padding: 1.5rem;">
+                    Este cliente aún no tiene facturas.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
