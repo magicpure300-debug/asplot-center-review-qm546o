@@ -128,8 +128,11 @@ def create_app():
     # Crear tablas de la base de datos
     with app.app_context():
         db.create_all()
-        # Crear usuario administrador por defecto
-        if not Usuario.query.filter_by(email='admin@asplot.com').first():
+        # Crear usuario administrador por defecto SOLO en una base nueva.
+        # El guard por "no hay ningún usuario" (y no por email concreto) evita
+        # que una instalación existente vuelva a sembrar la demo y choque con
+        # los emails únicos de clientes/proyectos (caso G60, nov-2026).
+        if not Usuario.query.first():
             admin = Usuario(
                 nombre_usuario='admin',
                 email='admin@asplot.com',
