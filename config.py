@@ -63,6 +63,19 @@ class Config:
     # Configuración de sesión
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hora
 
+    # =========================================================================
+    # Sprint 5 (PB-10) - Cotización automática
+    # Tarifa de venta por m² y margen; rendimientos estimados de los insumos
+    # (m² que cubre un rollo de papel / un cartucho de tinta). Configurables
+    # por entorno para ajustar la demo sin tocar código.
+    # =========================================================================
+    COTIZACION_TARIFA_M2 = float(os.environ.get('COTIZACION_TARIFA_M2', '8.0'))
+    COTIZACION_MARGEN_PCT = float(os.environ.get('COTIZACION_MARGEN_PCT', '30'))
+    COTIZACION_RENDIMIENTO_ROLLO_M2 = float(
+        os.environ.get('COTIZACION_RENDIMIENTO_ROLLO_M2', '10'))
+    COTIZACION_RENDIMIENTO_CARTUCHO_M2 = float(
+        os.environ.get('COTIZACION_RENDIMIENTO_CARTUCHO_M2', '20'))
+
     @staticmethod
     def init_app(app):
         """Inicializar configuración específica de la aplicación"""

@@ -43,10 +43,14 @@ cotización,
   cubre PDF/DXF, que es el flujo de subida del sistema.
 
 ### Criterios de aceptación
-- [ ] Con un PDF estándar (A0–A4), el sistema extrae el tamaño correcto sin intervención.
-- [ ] Con un DXF, calcula la extensión del dibujo y la convierte a m² de impresión.
-- [ ] La cotización resultante se registra como propuesta de precio en la solicitud.
-- [ ] Si el formato no es analizable, el sistema lo indica y deja la cotización manual.
+- [x] Con un PDF estándar (A0–A4), el sistema extrae el tamaño correcto sin intervención.
+- [x] Con un DXF, calcula la extensión del dibujo y la convierte a m² de impresión.
+- [x] La cotización resultante se registra como propuesta de precio en la solicitud.
+- [x] Si el formato no es analizable, el sistema lo indica y deja la cotización manual.
+
+> **v1 implementada en el Sprint 5** (`specs/005-cotizacion-automatica/`,
+> `docs/SPRINT_5.md`): solo librerías puras Python (pypdf + lector DXF propio)
+> para que funcione también en el G60; la v2 con LLM+RAG sigue pendiente.
 
 ---
 

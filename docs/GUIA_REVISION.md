@@ -17,6 +17,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 | Sprint 2 | PB-04, PB-05 | `7b9f56a` | 24 índices de rendimiento en `models.py` (aplicables con `aplicar_indices.py`, idempotente y compatible SQLite/MySQL). Eliminación del patrón N+1 con `selectinload` en 6 listados. Conteos consolidados (UNION ALL / GROUP BY). Paginación en la búsqueda de planos. Herramienta de medición `perf_test.py`. |
 | Sprint 3 | PB-06, PB-07, PB-08, PB-09 | `9a39941` | Caché en memoria con TTL y clave por usuario (`cachear.py`) con invalidación automática tras cada escritura. Compresión gzip y cabeceras `Cache-Control`. Optimización de imágenes con Pillow + WebP. Portafolio público con filtros por tipo de servicio y presupuesto. Visor de imágenes HD con zoom y arrastre (`zoom.js`). |
 | Sprint 4 | PB-14, PB-15 | `ed61abe` | Solicitud de servicio online **sin cuenta** (`/solicitud`) con reutilización de cliente por email, honeypot y límite por IP; bandeja `/solicitudes` y contador en dashboard. Ficha de cliente 360° (`/clientes/<id>`) con historial, totales facturado/pagado/pendiente, búsqueda por teléfono, paginación e integridad al eliminar. Planificación SDD en `specs/004-solicitudes-clientes/` y detalle en `docs/SPRINT_4.md`. |
+| Sprint 5 | PB-10 | `PENDIENTE` | Cotización automática (Fase 2, v1 determinista): botón «Calcular automáticamente» en el formulario de cotización; área de impresión de PDF (`pypdf`) y DXF (lector de `$EXTMIN/$EXTMAX`), precio con desglose (área × tarifa + insumos + margen), archivo del proyecto con respaldo al adjunto de la solicitud. Sin cambios de esquema ni servicios externos. Detalle en `docs/SPRINT_5.md` y `specs/005-cotizacion-automatica/`. |
 | Higiene | — | `1dd63e5`, `eebb640`, `15e8049`, `12ed757` | Corrección de credenciales en la documentación y sincronización de ramas (`main` = producción, `develop` = desarrollo). |
 
 ## 2. Documentos de evidencia
@@ -24,7 +25,9 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 - [`docs/SPRINT_2.md`](../docs/SPRINT_2.md) — métricas antes/después por ruta y criterios de aceptación.
 - [`docs/SPRINT_3.md`](../docs/SPRINT_3.md) — resultados de compresión, diseño de la caché y verificación (26 aserciones).
 - [`docs/SPRINT_4.md`](../docs/SPRINT_4.md) — solicitudes online, ficha de cliente, decisiones y verificación (29 comprobaciones).
+- [`docs/SPRINT_5.md`](../docs/SPRINT_5.md) — cotización automática (PB-10), fórmula, decisiones y verificación (26 comprobaciones).
 - [`specs/004-solicitudes-clientes/`](../specs/004-solicitudes-clientes/) — especificación, plan técnico y tareas del Sprint 4 (SDD).
+- [`specs/005-cotizacion-automatica/`](../specs/005-cotizacion-automatica/) — especificación, plan técnico y tareas del Sprint 5 (SDD).
 - [`docs/MIGRACION_MYSQL.md`](../docs/MIGRACION_MYSQL.md) — arquitectura y pasos de la migración a MySQL.
 
 ## 3. Ejecutar la aplicación en local

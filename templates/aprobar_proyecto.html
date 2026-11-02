@@ -41,7 +41,7 @@
     {% if proyecto.archivo_solicitud %}
     <div class="file-section">
         <label><i class="fas fa-paperclip"></i> Archivo Adjunto:</label>
-        <a href="{{ url_for('static', filename='uploads/solicitudes/' + proyecto.archivo_solicitud) }}" download
+        <a href="{{ url_for('static', filename='uploads/planos/solicitudes/' + proyecto.archivo_solicitud) }}" download
             class="btn btn-sm btn-secondary">
             <i class="fas fa-download"></i>
             Descargar: {{ proyecto.archivo_solicitud }}
@@ -71,6 +71,50 @@
             placeholder="0.00"
             required>
             <small>Ingrese el precio final del servicio</small>
+        </div>
+
+        <!-- Sprint 5 (PB-10): cubicación y cotización automática -->
+        <div class="form-group">
+            <label>Cubicación automática (PDF/DXF)</label>
+            <button type="button" id="btn-calcular" class="btn btn-secondary">
+                <i class="fas fa-ruler-combined"></i>
+                Calcular automáticamente
+            </button>
+            <small>Analiza el plano del proyecto y sugiere el precio; usted decide el monto final.</small>
+            <div id="calc-mensaje" class="calc-mensaje" role="status" aria-live="polite"></div>
+            <div id="calc-desglose" class="calc-desglose" hidden>
+                <h4><i class="fas fa-ruler-combined"></i> Desglose sugerido</h4>
+                <p id="calc-archivo" class="calc-archivo"></p>
+                <ul id="calc-advertencias" class="calc-advertencias"></ul>
+                <table class="calc-tabla">
+                    <tbody>
+                        <tr>
+                            <td>Área de impresión</td>
+                            <td id="calc-area"></td>
+                        </tr>
+                        <tr>
+                            <td>Tarifa</td>
+                            <td id="calc-tarifa"></td>
+                        </tr>
+                        <tr>
+                            <td>Insumos</td>
+                            <td id="calc-insumos"></td>
+                        </tr>
+                        <tr>
+                            <td>Margen</td>
+                            <td id="calc-margen"></td>
+                        </tr>
+                        <tr class="calc-total">
+                            <td>Total sugerido</td>
+                            <td id="calc-total"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button type="button" id="btn-notas" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-pen"></i>
+                    Añadir desglose a notas
+                </button>
+            </div>
         </div>
 
         <!-- Fecha Estimada -->
@@ -245,6 +289,74 @@
         color: #20c997;
         margin-right: 0.5rem;
     }
+
+    /* Sprint 5 (PB-10): cubicación automática */
+    .calc-mensaje {
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .calc-mensaje.calc-error {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    .calc-desglose {
+        margin-top: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        background: #f8f9fa;
+    }
+
+    .calc-desglose h4 {
+        margin: 0 0 0.5rem;
+        color: #20c997;
+        font-size: 1rem;
+    }
+
+    .calc-archivo {
+        margin: 0 0 0.75rem;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .calc-advertencias {
+        margin: 0 0 0.75rem;
+        padding-left: 1.1rem;
+        color: #b02a37;
+        font-size: 0.85rem;
+    }
+
+    .calc-tabla {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .calc-tabla td {
+        padding: 0.45rem 0;
+        border-bottom: 1px solid #e9ecef;
+        vertical-align: top;
+    }
+
+    .calc-tabla td:last-child {
+        text-align: right;
+        font-weight: 600;
+        padding-left: 1rem;
+    }
+
+    .calc-tabla tr.calc-total td {
+        border-bottom: none;
+        padding-top: 0.6rem;
+        font-size: 1.05rem;
+        color: #198754;
+    }
+
+    #btn-notas {
+        margin-top: 0.75rem;
+    }
 </style>
 
 <script>
@@ -253,6 +365,111 @@
         const fechaInput = document.getElementById('fecha_fin');
         const today = new Date().toISOString().split('T')[0];
         fechaInput.setAttribute('min', today);
+
+        // =====================================================================
+        // Sprint 5 (PB-10): cubicación y cotización automática
+        // El cálculo solo sugiere; el precio final se guarda con este formulario.
+        // =====================================================================
+        const urlCalculo = "{{ url_for('cotizacion_automatica', id=proyecto.id_proyecto) }}";
+        const btnCalcular = document.getElementById('btn-calcular');
+        const mensaje = document.getElementById('calc-mensaje');
+        const panel = document.getElementById('calc-desglose');
+        const inputPresupuesto = document.getElementById('presupuesto');
+        const textareaNotas = document.getElementById('notas');
+        const valorInicial = (inputPresupuesto.value || '').trim();
+        let textoDesglose = '';
+
+        function dinero(valor) {
+            return '$' + Number(valor || 0).toFixed(2);
+        }
+
+        function limpiarPanel() {
+            panel.hidden = true;
+            textoDesglose = '';
+            document.getElementById('calc-advertencias').innerHTML = '';
+        }
+
+        function pintarDesglose(datos) {
+            const analisis = datos.analisis;
+            const desglose = datos.desglose;
+            document.getElementById('calc-archivo').textContent =
+                datos.archivo + ' — ' + analisis.detalle_area;
+            document.getElementById('calc-area').textContent =
+                Number(analisis.area_m2).toFixed(4) + ' m²';
+            document.getElementById('calc-tarifa').textContent =
+                dinero(desglose.tarifa_m2) + '/m² → ' + dinero(desglose.base);
+            document.getElementById('calc-insumos').textContent =
+                desglose.insumos.map(function (insumo) {
+                    return insumo.nombre + ': ' + insumo.cantidad + ' ' + insumo.unidad +
+                        ' × ' + dinero(insumo.precio) + ' = ' + dinero(insumo.subtotal);
+                }).join(' · ') + ' → ' + dinero(desglose.subtotal_insumos);
+            document.getElementById('calc-margen').textContent =
+                Number(desglose.margen_pct).toFixed(0) + '% → ' + dinero(desglose.margen);
+            document.getElementById('calc-total').textContent = dinero(desglose.total);
+
+            const lista = document.getElementById('calc-advertencias');
+            lista.innerHTML = '';
+            (analisis.advertencias || []).concat(desglose.advertencias || []).forEach(function (aviso) {
+                const item = document.createElement('li');
+                item.textContent = aviso;
+                lista.appendChild(item);
+            });
+
+            textoDesglose = datos.texto_notas || '';
+            panel.hidden = false;
+        }
+
+        async function calcular() {
+            btnCalcular.disabled = true;
+            mensaje.className = 'calc-mensaje';
+            mensaje.textContent = 'Analizando plano…';
+            try {
+                const respuesta = await fetch(urlCalculo, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!respuesta.ok) {
+                    throw new Error('No se pudo calcular (código ' + respuesta.status + ')');
+                }
+                const datos = await respuesta.json();
+                if (!datos.ok) {
+                    limpiarPanel();
+                    mensaje.className = 'calc-mensaje calc-error';
+                    mensaje.textContent = datos.mensaje || 'No se pudo calcular la cotización';
+                    return;
+                }
+                pintarDesglose(datos);
+                mensaje.textContent = '';
+                const actual = (inputPresupuesto.value || '').trim();
+                if (!actual || actual === '0' || actual === valorInicial) {
+                    inputPresupuesto.value = datos.desglose.total.toFixed(2);
+                } else if (window.confirm('Ya hay un presupuesto escrito (' + actual +
+                    '). ¿Reemplazarlo por el sugerido ' + dinero(datos.desglose.total) + '?')) {
+                    inputPresupuesto.value = datos.desglose.total.toFixed(2);
+                }
+            } catch (error) {
+                limpiarPanel();
+                mensaje.className = 'calc-mensaje calc-error';
+                mensaje.textContent = error.message || 'Error de conexión al calcular';
+            } finally {
+                btnCalcular.disabled = false;
+            }
+        }
+
+        btnCalcular.addEventListener('click', calcular);
+
+        document.getElementById('btn-notas').addEventListener('click', function () {
+            if (!textoDesglose) {
+                return;
+            }
+            const actual = (textareaNotas.value || '').trim();
+            textareaNotas.value = (actual ? actual + '\n\n' : '') + textoDesglose;
+        });
+
+        {% if auto_calc %}
+        calcular();
+        {% endif %}
     });
 </script>
 {% endblock %}

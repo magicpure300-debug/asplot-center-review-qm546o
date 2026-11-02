@@ -11,6 +11,7 @@ import time
 from datetime import datetime, date
 from fpdf import FPDF
 from cachear import cache, cachear_ruta  # Sprint 3 - PB-06
+import cotizador_auto  # Sprint 5 - PB-10 (cubicacion y cotizacion automatica)
 import io
 import gzip
 import json
@@ -984,7 +985,124 @@ def create_app():
     
         return render_template('aprobar_proyecto.html', 
                              proyecto=proyecto,
-                             precio_base=precio_base)
+                             precio_base=precio_base,
+                             auto_calc=request.args.get('auto') == '1')
+
+
+    # =============================================================================
+    # SPRINT 5 (PB-10) - CUBICACIÓN Y COTIZACIÓN AUTOMÁTICA
+    # Calcula el área de impresión de un plano (PDF/DXF) y propone un precio.
+    # Solo sugiere: no escribe en la base. El admin guarda con el formulario
+    # de cotización existente (presupuesto + estado 'cotizado').
+    # =============================================================================
+
+    def _carpeta_planos():
+        return os.path.abspath(os.path.join(app.root_path, app.config['UPLOAD_FOLDER']))
+
+    def _carpetas_solicitud():
+        base = _carpeta_planos()
+        return [
+            os.path.abspath(os.path.join(base, 'solicitudes')),
+            os.path.abspath(os.path.join(app.static_folder, 'uploads', 'solicitudes')),
+        ]
+
+    def _archivo_dentro(carpeta, nombre):
+        """Ruta absoluta si el archivo existe dentro de la carpeta (anti-traversal)."""
+        ruta = os.path.abspath(os.path.join(carpeta, nombre))
+        if not ruta.startswith(carpeta + os.sep):
+            return None
+        return ruta if os.path.isfile(ruta) else None
+
+    def _candidatos_planos(proyecto):
+        """Planos subidos (más recientes primero) y después el adjunto de la solicitud."""
+        candidatos = []
+        planos = sorted(proyecto.planos,
+                        key=lambda p: p.fecha_subida or datetime.min,
+                        reverse=True)
+        for plano in planos:
+            candidatos.append((plano.archivo, _archivo_dentro(_carpeta_planos(), plano.archivo)))
+        if proyecto.archivo_solicitud:
+            for carpeta in _carpetas_solicitud():
+                ruta = _archivo_dentro(carpeta, proyecto.archivo_solicitud)
+                if ruta:
+                    candidatos.append((proyecto.archivo_solicitud, ruta))
+                    break
+        return candidatos
+
+    def _datos_material_para_cotizar(material):
+        if material is None:
+            return None
+        inventario = Inventario.query.filter_by(id_material=material.id_material).first()
+        return {
+            'nombre': material.nombre_material,
+            'precio_compra': float(material.precio_compra or 0),
+            'unidad': material.unidad_medida,
+            'stock': inventario.cantidad if inventario else None,
+        }
+
+    @app.route('/proyectos/<int:id>/cotizacion-automatica', methods=['POST'])
+    @login_required
+    def cotizacion_automatica(id):
+        """Calcula área y precio sugerido. No modifica datos del proyecto."""
+        if not (current_user.es_admin or current_user.es_trabajador):
+            return jsonify({'ok': False, 'mensaje': 'No tienes permiso para cotizar'}), 403
+
+        proyecto = Proyecto.query.get_or_404(id)
+        candidatos = _candidatos_planos(proyecto)
+
+        motivo = 'Sube un plano PDF/DXF o adjunta el archivo a la solicitud para calcular'
+        elegido = None
+        for nombre, ruta in candidatos:
+            if not ruta:
+                motivo = 'El archivo %s no está disponible en el servidor' % nombre
+                continue
+            extension = os.path.splitext(nombre)[1].lower().lstrip('.')
+            if extension not in cotizador_auto.EXTENSIONES_ANALIZABLES:
+                motivo = 'El archivo %s no es analizable; se necesitan PDF o DXF' % nombre
+                continue
+            elegido = (nombre, ruta)
+            break
+
+        if elegido is None:
+            return jsonify({'ok': False, 'mensaje': motivo})
+
+        analisis = cotizador_auto.analizar_archivo(elegido[1])
+        if not analisis.get('ok'):
+            return jsonify({'ok': False, 'archivo': elegido[0],
+                            'mensaje': analisis.get('mensaje', 'No se pudo analizar el archivo')})
+
+        formato = analisis.get('formato_iso')
+        consulta_papel = Material.query.filter_by(categoria='papel', activo=True)
+        material_papel = None
+        if formato in ('A0', 'A1', 'A2', 'A3', 'A4'):
+            material_papel = consulta_papel.filter_by(subcategoria=formato).first()
+        material_papel = (material_papel
+                          or consulta_papel.filter_by(subcategoria='A0').first()
+                          or consulta_papel.first())
+        consulta_tinta = Material.query.filter_by(categoria='tinta', activo=True)
+        material_tinta = (consulta_tinta.filter_by(subcategoria='negro').first()
+                          or consulta_tinta.first())
+
+        desglose = cotizador_auto.calcular_precio(
+            analisis.get('area_m2', 0.0),
+            _datos_material_para_cotizar(material_papel),
+            _datos_material_para_cotizar(material_tinta),
+            app.config['COTIZACION_TARIFA_M2'],
+            app.config['COTIZACION_MARGEN_PCT'],
+            app.config['COTIZACION_RENDIMIENTO_ROLLO_M2'],
+            app.config['COTIZACION_RENDIMIENTO_CARTUCHO_M2'],
+        )
+        if not desglose.get('ok'):
+            return jsonify({'ok': False,
+                            'mensaje': desglose.get('mensaje', 'No se pudo calcular el precio')})
+
+        return jsonify({
+            'ok': True,
+            'archivo': elegido[0],
+            'analisis': analisis,
+            'desglose': desglose,
+            'texto_notas': cotizador_auto.texto_desglose(analisis, desglose),
+        })
 
 
     # =============================================================================
