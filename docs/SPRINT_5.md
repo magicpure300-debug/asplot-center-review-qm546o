@@ -97,10 +97,21 @@ Suite `test_sprint5.py` (copia limpia del proyecto con SQLite propio):
   dashboard, solicitudes, inventario).
 - Regresión completa: `test_sprint4.py` (29 checks) sigue en verde.
 
+## Despliegue y hallazgo en el G60
+
+- Verificado en el servidor propio (Termux): `pypdf` instala sin compilar y
+  la suite completa corre en el teléfono (26 comprobaciones en verde).
+- Prueba viva con login real y un PDF A0: HTTP 200, área 0,9999 m², total
+  $15,67; los datos de prueba se eliminaron al terminar.
+- **Corrección de siembra:** la demo solo se siembra en bases nuevas
+  (`if not Usuario.query.first()`). En el G60 existía una base previa con otro
+  email de admin y el guard anterior (por email) intentaba sembrar de nuevo,
+  chocando con los emails únicos y dejando el servicio sin arrancar. Ahora una
+  instalación existente arranca sin tocar sus datos.
+
 ## Limitaciones documentadas
 
-- **.DWG** queda fuera (formato propietario; requiere conversor ODA).
-- **JPG/PNG** no se analizan: sin DPI fiable en el G60 se tratan como no
+- **.DWG** queda fuera (formato propietario; requiere conversor ODA).- **JPG/PNG** no se analizan: sin DPI fiable en el G60 se tratan como no
   analizables y la cotización sigue manual.
 - **DXF sin `$EXTMIN`/`$EXTMAX`** no se analiza (no se recorren entidades en
   v1); se informa y queda manual.

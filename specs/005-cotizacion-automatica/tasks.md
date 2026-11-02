@@ -79,7 +79,7 @@
     `docs/BACKLOG_IA.md`.
   - Hecho: los tres documentos actualizados y coherentes con la spec.
 
-- [ ] **T10. Despliegue y verificación end-to-end**
+- [x] **T10. Despliegue y verificación end-to-end**
   - RF: RNF portabilidad (G60, Render).
   - Push de `develop` a `origin` y `review`; copiar archivos al G60,
     instalar `pypdf` en su venv, reiniciar `asplot` y probar una cotización
