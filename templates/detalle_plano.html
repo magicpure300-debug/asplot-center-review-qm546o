@@ -136,6 +136,27 @@
                     </div>
                 </div>
             </div>
+            <div class="detail-section">
+                <h3><i class="fas fa-clipboard-check"></i> Calidad del archivo</h3>
+                {% if calidad %}
+                <ul class="calidad-lista">
+                    {% for item in calidad %}
+                    <li class="calidad-item calidad-{{ item.estado }}">
+                        {% if item.estado == 'ok' %}
+                        <i class="fas fa-check-circle"></i>
+                        {% elif item.estado == 'aviso' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                        <i class="fas fa-minus-circle"></i>
+                        {% endif %}
+                        <strong>{{ item.etiqueta }}:</strong> {{ item.detalle }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>No se pudo verificar el archivo.</p>
+                {% endif %}
+            </div>
         </div>
 
         <div class="detail-actions">
@@ -195,6 +216,20 @@
         font-size: 0.85rem;
     }
     .preview-zoom-ayuda i { color: var(--verde, #2e7d32); }
+
+    /* Sprint 6 (PB-13): checklist de calidad */
+    .calidad-lista { list-style: none; margin: 0; padding: 0; }
+    .calidad-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 0.92rem;
+    }
+    .calidad-item:last-child { border-bottom: none; }
+    .calidad-ok i { color: #2e7d32; }
+    .calidad-aviso i { color: #f39c12; }
+    .calidad-aviso { color: #8a5a00; }
+    .calidad-no_verificable i { color: #999; }
+    .calidad-no_verificable { color: #777; }
 </style>
 {% endblock %}
 

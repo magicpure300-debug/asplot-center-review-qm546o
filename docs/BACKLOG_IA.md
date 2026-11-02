@@ -70,9 +70,12 @@ cotización,
   suficiente de consumo (alimentados por las mismas métricas de la v1).
 
 ### Criterios de aceptación
-- [ ] Panel de inventario muestra materiales en zona de riesgo con días estimados.
-- [ ] El cálculo usa solo datos de facturas/movimientos existentes (sin nuevas tablas).
-- [ ] Las alertas se pueden silenciar/marcar como atendidas.
+- [x] Panel de inventario muestra materiales en zona de riesgo con días estimados.
+- [x] El cálculo usa solo datos de facturas/movimientos existentes (sin nuevas tablas).
+- [x] Las alertas se pueden silenciar/marcar como atendidas.
+
+> **v1 implementada en el Sprint 6** (`specs/006-inventario-calidad/`,
+> `docs/SPRINT_6.md`).
 
 ---
 
@@ -119,9 +122,12 @@ mayor consumo de insumos el mes pasado y su margen"*),
   comprometer el objetivo del proyecto.
 
 ### Criterios de aceptación
-- [ ] Subir una imagen de baja resolución genera una advertencia automática.
-- [ ] Un PDF cuyo contenido no coincide con la extensión declarada genera advertencia.
-- [ ] La verificación no bloquea la subida, solo informa (no degrada el flujo).
+- [x] Subir una imagen de baja resolución genera una advertencia automática.
+- [x] Un PDF cuyo contenido no coincide con la extensión declarada genera advertencia.
+- [x] La verificación no bloquea la subida, solo informa (no degrada el flujo).
+
+> **v1 implementada en el Sprint 6** (`specs/006-inventario-calidad/`,
+> `docs/SPRINT_6.md`); la v2 de visión por computador sigue diferida.
 
 ---
 

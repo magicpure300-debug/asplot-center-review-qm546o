@@ -76,6 +76,23 @@ class Config:
     COTIZACION_RENDIMIENTO_CARTUCHO_M2 = float(
         os.environ.get('COTIZACION_RENDIMIENTO_CARTUCHO_M2', '20'))
 
+    # =========================================================================
+    # Sprint 6 (PB-11 / PB-13) - Inventario predictivo y calidad de planos
+    # =========================================================================
+    INVENTARIO_VENTANA_DIAS = int(os.environ.get('INVENTARIO_VENTANA_DIAS', '90'))
+    INVENTARIO_DIAS_REPOSICION = float(
+        os.environ.get('INVENTARIO_DIAS_REPOSICION', '7'))
+    INVENTARIO_DIAS_SEGURIDAD = float(
+        os.environ.get('INVENTARIO_DIAS_SEGURIDAD', '7'))
+    INVENTARIO_DIAS_COMPRA = float(os.environ.get('INVENTARIO_DIAS_COMPRA', '30'))
+    INVENTARIO_FACTOR_ACTIVO = float(
+        os.environ.get('INVENTARIO_FACTOR_ACTIVO', '0.10'))
+    INVENTARIO_TOPE_ACTIVO = float(
+        os.environ.get('INVENTARIO_TOPE_ACTIVO', '0.50'))
+    INVENTARIO_SILENCIO_DIAS = int(
+        os.environ.get('INVENTARIO_SILENCIO_DIAS', '7'))
+    CALIDAD_DPI_MINIMO = float(os.environ.get('CALIDAD_DPI_MINIMO', '150'))
+
     @staticmethod
     def init_app(app):
         """Inicializar configuración específica de la aplicación"""

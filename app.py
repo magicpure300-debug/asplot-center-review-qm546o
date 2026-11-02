@@ -8,10 +8,12 @@ import os
 import re
 import threading
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from fpdf import FPDF
 from cachear import cache, cachear_ruta  # Sprint 3 - PB-06
 import cotizador_auto  # Sprint 5 - PB-10 (cubicacion y cotizacion automatica)
+import inventario_predictivo  # Sprint 6 - PB-11 (prediccion de reabastecimiento)
+import calidad_planos  # Sprint 6 - PB-13 (calidad de planos)
 import io
 import gzip
 import json
@@ -1308,8 +1310,21 @@ def create_app():
                     )
                     db.session.add(plano)
                     db.session.commit()
-                    
-                    flash('Plano subido exitosamente', 'success')
+
+                    # Sprint 6 (PB-13): verificacion de calidad NO bloqueante.
+                    # El plano ya quedo guardado; solo se informan advertencias.
+                    try:
+                        calidad = calidad_planos.verificar_archivo(
+                            file_path, app.config['CALIDAD_DPI_MINIMO'])
+                        advertencias = calidad_planos.resumen_advertencias(calidad)
+                    except Exception:
+                        advertencias = []
+                    if advertencias:
+                        flash('Plano guardado con advertencias de calidad: '
+                              + ' | '.join(advertencias), 'error')
+                    else:
+                        flash('Plano subido exitosamente (calidad verificada sin advertencias)',
+                              'success')
                     return redirect(url_for('planos'))
                 else:
                     flash('Tipo de archivo no permitido. Formatos válidos: PDF, DWG, DXF, JPG, PNG', 'error')
@@ -1372,7 +1387,14 @@ def create_app():
     @login_required
     def detalle_plano(id):
         plano = Plano.query.get_or_404(id)
-        return render_template('detalle_plano.html', plano=plano)
+        ruta = os.path.abspath(os.path.join(
+            app.root_path, app.config['UPLOAD_FOLDER'], plano.archivo))
+        try:
+            calidad = calidad_planos.verificar_archivo(
+                ruta, app.config['CALIDAD_DPI_MINIMO'])
+        except Exception:
+            calidad = []
+        return render_template('detalle_plano.html', plano=plano, calidad=calidad)
     
     @app.route('/mis-planos')
     @login_required
@@ -1451,6 +1473,109 @@ def create_app():
                              total_planos=total_planos)
     
     # Gestión de Inventario
+    # =========================================================================
+    # SPRINT 6 (PB-11) - INVENTARIO PREDICTIVO
+    # Velocidad de consumo con facturas de la ventana configurable, ajuste por
+    # proyectos en progreso, punto de reorden y compra sugerida.
+    # =========================================================================
+
+    def _ruta_silencios():
+        return os.path.join(app.instance_path, 'inventario_alertas.json')
+
+    def _prediccion_inventario():
+        hoy = date.today()
+        ventana = app.config['INVENTARIO_VENTANA_DIAS']
+        desde = datetime.combine(hoy - timedelta(days=ventana), datetime.min.time())
+
+        filas = (
+            db.session.query(
+                DetalleFactura.id_material,
+                db.func.sum(DetalleFactura.cantidad),
+                db.func.min(Factura.fecha_factura),
+            )
+            .join(Factura, Factura.id_factura == DetalleFactura.id_factura)
+            .filter(
+                DetalleFactura.id_material.isnot(None),
+                Factura.fecha_factura >= desde,
+                Factura.estado_pago != 'cancelada',
+            )
+            .group_by(DetalleFactura.id_material)
+            .all()
+        )
+        consumos = {
+            id_material: {'total': float(total or 0), 'primera': primera}
+            for id_material, total, primera in filas
+        }
+
+        existencias = {i.id_material: i.cantidad for i in Inventario.query.all()}
+        materiales = []
+        for material in Material.query.filter_by(activo=True).all():
+            materiales.append({
+                'id': material.id_material,
+                'nombre': material.nombre_material,
+                'stock': existencias.get(material.id_material, 0),
+                'stock_minimo': material.stock_minimo or 0,
+                'unidad': material.unidad_medida or 'unidad',
+                'precio_compra': float(material.precio_compra or 0),
+            })
+
+        activos = Proyecto.query.filter_by(estado='en_progreso').count()
+        params = {
+            'ventana_dias': ventana,
+            'dias_reposicion': app.config['INVENTARIO_DIAS_REPOSICION'],
+            'dias_seguridad': app.config['INVENTARIO_DIAS_SEGURIDAD'],
+            'dias_compra': app.config['INVENTARIO_DIAS_COMPRA'],
+            'factor_activo': app.config['INVENTARIO_FACTOR_ACTIVO'],
+            'tope_activo': app.config['INVENTARIO_TOPE_ACTIVO'],
+        }
+        predicciones = inventario_predictivo.calcular_predicciones(
+            materiales, consumos, activos, params, hoy)
+        silencios = inventario_predictivo.leer_silencios(_ruta_silencios(), hoy)
+        inventario_predictivo.aplicar_silencios(predicciones, silencios)
+
+        resumen = {
+            'activos': activos,
+            'ventana': ventana,
+            'dias_compra': app.config['INVENTARIO_DIAS_COMPRA'],
+            'ajuste': predicciones[0]['ajuste'] if predicciones else 1.0,
+            'riesgo': sum(1 for p in predicciones if p['estado'] == 'riesgo'),
+            'sin_historial': sum(1 for p in predicciones if p['estado'] == 'sin_historial'),
+            'silenciadas': sum(1 for p in predicciones if p['estado'] == 'silenciada'),
+        }
+        return predicciones, silencios, resumen
+
+    @app.route('/inventario/alertas/silenciar/<int:id>', methods=['POST'])
+    @login_required
+    def silenciar_alerta_inventario(id):
+        if not (current_user.es_admin or current_user.es_trabajador):
+            flash('No tienes permiso para silenciar alertas', 'error')
+            return redirect(url_for('inventario'))
+        material = Material.query.get_or_404(id)
+        datos = inventario_predictivo.leer_silencios(_ruta_silencios())
+        hasta = date.today() + timedelta(days=app.config['INVENTARIO_SILENCIO_DIAS'])
+        datos[id] = hasta
+        if inventario_predictivo.guardar_silencios(_ruta_silencios(), datos):
+            flash('Alerta de %s silenciada hasta el %s'
+                  % (material.nombre_material, hasta.strftime('%d/%m/%Y')), 'success')
+        else:
+            flash('No se pudo guardar el silencio de la alerta', 'error')
+        return redirect(url_for('inventario'))
+
+    @app.route('/inventario/alertas/reactivar/<int:id>', methods=['POST'])
+    @login_required
+    def reactivar_alerta_inventario(id):
+        if not (current_user.es_admin or current_user.es_trabajador):
+            flash('No tienes permiso para reactivar alertas', 'error')
+            return redirect(url_for('inventario'))
+        material = Material.query.get_or_404(id)
+        datos = inventario_predictivo.leer_silencios(_ruta_silencios())
+        datos.pop(id, None)
+        if inventario_predictivo.guardar_silencios(_ruta_silencios(), datos):
+            flash('Alerta de %s reactivada' % material.nombre_material, 'success')
+        else:
+            flash('No se pudo reactivar la alerta', 'error')
+        return redirect(url_for('inventario'))
+
     @app.route('/inventario')
     @login_required
     def inventario():
@@ -1478,12 +1603,18 @@ def create_app():
         materiales_bajo_stock = Inventario.query.join(Material).filter(
             Inventario.cantidad <= Material.stock_minimo
         ).all()
+
+        # Sprint 6 (PB-11): prediccion de reabastecimiento
+        predicciones, silencios, resumen_prediccion = _prediccion_inventario()
         
         return render_template('inventario.html', 
                              inventarios=inventarios, 
                              materiales_bajo_stock=materiales_bajo_stock,
                              search=search,
-                             categoria=categoria)
+                             categoria=categoria,
+                             predicciones=predicciones,
+                             silencios=silencios,
+                             resumen_prediccion=resumen_prediccion)
     
     @app.route('/inventario/materiales')
     @login_required

@@ -25,6 +25,88 @@
 </div>
 {% endif %}
 
+<!-- Sprint 6 (PB-11): predicción de reabastecimiento -->
+<div class="prediccion-section">
+    <h2><i class="fas fa-chart-line"></i> Predicción de reabastecimiento</h2>
+    <p class="prediccion-resumen">
+        Ventana: {{ resumen_prediccion.ventana }} días ·
+        Proyectos en progreso: {{ resumen_prediccion.activos }}
+        (ajuste ×{{ "%.2f"|format(resumen_prediccion.ajuste) }}) ·
+        En riesgo: {{ resumen_prediccion.riesgo }} ·
+        Sin historial: {{ resumen_prediccion.sin_historial }} ·
+        Silenciadas: {{ resumen_prediccion.silenciadas }}
+    </p>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Stock</th>
+                    <th>Velocidad</th>
+                    <th>Días restantes</th>
+                    <th>Punto de reorden</th>
+                    <th>Compra sugerida</th>
+                    <th>Estado</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in predicciones %}
+                <tr>
+                    <td>
+                        <strong>{{ p.nombre }}</strong>
+                        {% for aviso in p.avisos %}
+                        <br><small>{{ aviso }}</small>
+                        {% endfor %}
+                    </td>
+                    <td class="text-center">{{ p.stock }} {{ p.unidad }}</td>
+                    <td class="text-center">{{ "%.2f"|format(p.velocidad_ajustada) }} {{ p.unidad }}/día</td>
+                    <td class="text-center">
+                        {% if p.dias_restantes is none %}&mdash;{% else %}{{ "%.1f"|format(p.dias_restantes) }} d{% endif %}
+                    </td>
+                    <td class="text-center">{{ "%.1f"|format(p.punto_reorden) }}</td>
+                    <td class="text-center">
+                        {% if p.compra_sugerida %}<strong>{{ p.compra_sugerida }} {{ p.unidad }}</strong>{% else %}&mdash;{% endif %}
+                    </td>
+                    <td>
+                        {% if p.estado == 'riesgo' %}
+                        <span class="status-badge status-warning">
+                            <i class="fas fa-exclamation-circle"></i> Riesgo
+                        </span>
+                        {% elif p.estado == 'sin_historial' %}
+                        <span class="status-badge">Sin historial</span>
+                        {% elif p.estado == 'silenciada' %}
+                        <span class="status-badge">Silenciada{% if p.silencio_hasta %} hasta {{ p.silencio_hasta }}{% endif %}</span>
+                        {% else %}
+                        <span class="status-badge status-success">
+                            <i class="fas fa-check-circle"></i> OK
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if p.estado == 'silenciada' %}
+                        <form action="{{ url_for('reactivar_alerta_inventario', id=p.id_material) }}"
+                            method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-secondary">Reactivar</button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('silenciar_alerta_inventario', id=p.id_material) }}"
+                            method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-sm btn-secondary">Silenciar</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="prediccion-nota">
+        La compra sugerida cubre {{ "%.0f"|format(resumen_prediccion.dias_compra) }} días de demanda
+        menos el stock actual. El silencio dura 7 días (configurable).
+    </p>
+</div>
+
 <div class="search-section">
     <form method="GET" class="search-form">
         <div class="search-input">
@@ -122,4 +204,24 @@
         <p class="summary-value warning">{{ materiales_bajo_stock|length }}</p>
     </div>
 </div>
+
+<style>
+    .prediccion-section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .prediccion-section h2 {
+        margin: 0 0 0.4rem;
+        font-size: 1.2rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .prediccion-section h2 i { color: #20c997; }
+    .prediccion-resumen { color: #6c757d; font-size: 0.9rem; margin: 0 0 1rem; }
+    .prediccion-nota { color: #6c757d; font-size: 0.8rem; margin: 0.75rem 0 0; }
+</style>
 {% endblock %}
