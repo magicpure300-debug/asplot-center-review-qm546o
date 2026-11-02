@@ -68,7 +68,6 @@ purga de vencidos y tolerancia a archivos corruptos. Botones «Silenciar»
 
 Suite `test_sprint6.py` (copia limpia con SQLite propio): **31 comprobaciones
 en verde**.
-
 - Calidad: PNG 300/72 dpi, PNG sin `pHYs`, JPG 300 dpi, JPG renombrado a PDF,
   PDF corrupto, archivo vacío, PDF A4.
 - Subida real con PNG de 72 dpi: se guarda (no bloquea) y muestra la
@@ -79,6 +78,14 @@ en verde**.
 - Silencio persistido en JSON, reactivación, y cliente sin permiso.
 - Regresión: landing, solicitud pública, dashboard, planos, facturas y
   clientes; suites de Sprints 4 y 5 completas en verde.
+
+## Despliegue y verificación en el G60
+
+- Suite completa ejecutada en el teléfono: 31 comprobaciones en verde.
+- Prueba viva: el panel de predicción se muestra y un PNG de 72 dpi aparece
+  con advertencia en el checklist del detalle; los datos de prueba se
+  eliminaron al terminar.
+- Tras reiniciar el servicio, LAN y túnel responden 200.
 
 ## Decisiones técnicas
 

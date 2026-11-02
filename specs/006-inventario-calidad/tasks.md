@@ -71,7 +71,7 @@
     `BACKLOG_IA.md`.
   - Hecho: documentos coherentes con la spec y las pruebas.
 
-- [ ] **T10. Despliegue en el G60 y verificación**
+- [x] **T10. Despliegue en el G60 y verificación**
   - RF: RNF portabilidad.
   - Push a `origin`/`review`, copiar archivos al G60, reiniciar `asplot` y
     probar el panel y el checklist con datos reales.
