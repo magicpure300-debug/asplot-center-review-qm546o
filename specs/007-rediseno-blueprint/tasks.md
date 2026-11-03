@@ -60,7 +60,7 @@
   - Suites 4/5/6 en verde + smoke HTTP de las rutas tocadas.
   - Hecho: todo en verde y sin 500 en las pantallas revisadas.
 
-- [ ] **T9. Documentación y despliegue en el G60**
+- [x] **T9. Documentación y despliegue en el G60**
   - RF: RNF documentación/portabilidad.
   - `docs/DISENO.md`, fila en `GUIA_REVISION.md`, push a `origin`/`review`,
     copia al G60, reinicio y verificación LAN/túnel.
