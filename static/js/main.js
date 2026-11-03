@@ -2,12 +2,47 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar funcionalidades
+    initializeSidebar();
     initializeFlashMessages();
     initializeFileUpload();
     initializeFormValidation();
     initializeSearch();
     initializeModals();
 });
+
+// Sprint 7: menú lateral colapsable en móvil
+function initializeSidebar() {
+    const body = document.body;
+    const abrir = document.getElementById('sidebar-toggle');
+    const cerrar = document.getElementById('sidebar-cerrar');
+    const sidebar = document.getElementById('sidebar');
+
+    function alternar(estado) {
+        body.classList.toggle('sidebar-abierta', estado);
+        if (abrir) {
+            abrir.setAttribute('aria-expanded', estado ? 'true' : 'false');
+        }
+    }
+
+    if (abrir) {
+        abrir.addEventListener('click', function() {
+            alternar(!body.classList.contains('sidebar-abierta'));
+        });
+    }
+    if (cerrar) {
+        cerrar.addEventListener('click', function() { alternar(false); });
+    }
+    if (sidebar) {
+        sidebar.querySelectorAll('a').forEach(function(enlace) {
+            enlace.addEventListener('click', function() { alternar(false); });
+        });
+    }
+    document.addEventListener('keydown', function(evento) {
+        if (evento.key === 'Escape') {
+            alternar(false);
+        }
+    });
+}
 
 // Manejo de mensajes flash
 function initializeFlashMessages() {

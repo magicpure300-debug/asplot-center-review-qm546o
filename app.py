@@ -100,6 +100,60 @@ def create_app():
     
     # Inicializar extensiones
     db.init_app(app)
+
+    # =========================================================================
+    # SPRINT 7 - Datos de navegacion: migas (breadcrumb) y badges del menu
+    # Los conteos son dos COUNT simples; el dashboard ya esta cacheado 60 s.
+    # =========================================================================
+    MIGAS = {
+        'dashboard': ('General', 'Dashboard'),
+        'solicitudes': ('Comercial', 'Solicitudes'),
+        'clientes': ('Comercial', 'Clientes'),
+        'crear_cliente': ('Comercial', 'Nuevo cliente'),
+        'editar_cliente': ('Comercial', 'Editar cliente'),
+        'detalle_cliente': ('Comercial', 'Ficha de cliente'),
+        'proyectos': ('Comercial', 'Proyectos'),
+        'crear_proyecto': ('Comercial', 'Nuevo proyecto'),
+        'editar_proyecto': ('Comercial', 'Editar proyecto'),
+        'detalle_proyecto': ('Comercial', 'Detalle del proyecto'),
+        'aprobar_proyecto': ('Comercial', 'Cotizar proyecto'),
+        'planos': ('Producción', 'Planos'),
+        'subir_plano': ('Producción', 'Subir plano'),
+        'detalle_plano': ('Producción', 'Detalle del plano'),
+        'buscar_planos': ('Producción', 'Buscar planos'),
+        'inventario': ('Producción', 'Inventario'),
+        'materiales': ('Producción', 'Materiales'),
+        'crear_material': ('Producción', 'Nuevo material'),
+        'editar_material': ('Producción', 'Editar material'),
+        'ajustar_inventario': ('Producción', 'Ajustar stock'),
+        'facturas': ('Facturación', 'Facturas'),
+        'crear_factura': ('Facturación', 'Nueva factura'),
+        'ver_factura': ('Facturación', 'Factura'),
+        'reportes': ('Facturación', 'Reportes'),
+        'usuarios': ('Administración', 'Usuarios'),
+        'crear_usuario': ('Administración', 'Nuevo usuario'),
+        'editar_usuario': ('Administración', 'Editar usuario'),
+        'mis_planos': ('Mi cuenta', 'Mis planos'),
+    }
+
+    @app.context_processor
+    def _datos_navegacion():
+        if not current_user.is_authenticated:
+            return {'miga': None, 'nav_solicitudes': 0, 'nav_riesgo': 0}
+        seccion, titulo = MIGAS.get(request.endpoint or '', ('', ''))
+        miga = {'seccion': seccion, 'titulo': titulo} if titulo else None
+        nav_solicitudes = 0
+        nav_riesgo = 0
+        if current_user.es_admin or current_user.es_trabajador:
+            nav_solicitudes = Proyecto.query.filter_by(estado='solicitado').count()
+            nav_riesgo = (
+                db.session.query(db.func.count(Inventario.id_inventario))
+                .join(Material)
+                .filter(Inventario.cantidad <= Material.stock_minimo)
+                .scalar() or 0
+            )
+        return {'miga': miga, 'nav_solicitudes': nav_solicitudes,
+                'nav_riesgo': nav_riesgo}
     
     # =========================================================================
     # Sprint 3 (PB-06) - Invalidación automática de caché tras cada escritura
@@ -423,6 +477,11 @@ def create_app():
             Proyecto.fecha_solicitud.desc()
         ).limit(5).all()
         
+        # Sprint 7: datos de las tarjetas de alerta del dashboard
+        materiales_bajo_minimo = Inventario.query.join(Material).filter(
+            Inventario.cantidad <= Material.stock_minimo).count()
+        _, _, resumen_inventario = _prediccion_inventario()
+
         return render_template('dashboard.html',
                              total_clientes=total_clientes,
                              total_proyectos=total_proyectos,
@@ -430,7 +489,9 @@ def create_app():
                              total_insumos=total_insumos,
                              total_facturas=total_facturas,
                              total_solicitudes=total_solicitudes,
-                             proyectos_recientes=proyectos_recientes)
+                             proyectos_recientes=proyectos_recientes,
+                             materiales_bajo_minimo=materiales_bajo_minimo,
+                             resumen_inventario=resumen_inventario)
     
     # Gestión de Clientes
     @app.route('/clientes')

@@ -685,3 +685,56 @@ body {
         font-size: 2rem;
     }
 }
+/* =====================================================================
+   SPRINT 7 - IDENTIDAD «BLUEPRINT» EN LA LANDING
+   ===================================================================== */
+:root {
+    --primary: #1d4ed8;
+    --primary-dark: #16357a;
+    --accent: #10b981;
+    --ink: #0f172a;
+    --muted: #64748b;
+}
+
+.hero {
+    background: linear-gradient(135deg, #16357a 0%, #1d4ed8 58%, #0ea5e9 100%) !important;
+}
+
+.hero::before {
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px) !important;
+    background-size: 28px 28px !important;
+    opacity: 1;
+}
+
+.hero-title,
+.section-title,
+.about-card h3 {
+    font-family: 'Space Grotesk', Poppins, sans-serif;
+    letter-spacing: -0.02em;
+}
+
+.btn-login { background: var(--primary) !important; }
+.btn-login:hover { background: #1a43bd !important; }
+
+.navbar.scrolled .btn-register:hover {
+    background: var(--primary) !important;
+    color: #fff !important;
+}
+
+.about-icon,
+.image-frame {
+    background: linear-gradient(135deg, var(--primary), var(--accent)) !important;
+    box-shadow: 0 20px 60px rgba(29, 78, 216, 0.25) !important;
+}
+
+.service-icon,
+.service-card i {
+    color: var(--primary);
+}
+
+.section-subtitle,
+.hero-description {
+    color: rgba(255, 255, 255, 0.85);
+}

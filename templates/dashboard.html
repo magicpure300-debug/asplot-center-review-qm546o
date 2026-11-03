@@ -4,14 +4,60 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Panel de Control</h1>
-    <p>Vista general de las operaciones de As Plot Center</p>
+    <div>
+        <h1>Panel de control</h1>
+        <p>Vista general de la operación de ASPLOT CENTER</p>
+    </div>
+    <a href="{{ url_for('solicitudes') }}" class="btn btn-primary">
+        <i class="fas fa-inbox"></i>
+        Revisar solicitudes
+    </a>
 </div>
 
-<!-- KPIs Cards - Solo 5 tarjetas principales -->
+<!-- Sprint 7: accesos rápidos -->
+<div class="acciones-rapidas">
+    <a class="accion-rapida" href="{{ url_for('solicitudes') }}">
+        <i class="fas fa-calculator"></i>
+        Cotizar solicitud
+    </a>
+    <a class="accion-rapida" href="{{ url_for('subir_plano') }}">
+        <i class="fas fa-upload"></i>
+        Subir plano
+    </a>
+    <a class="accion-rapida" href="{{ url_for('crear_factura') }}">
+        <i class="fas fa-file-invoice-dollar"></i>
+        Nueva factura
+    </a>
+    <a class="accion-rapida" href="{{ url_for('inventario') }}">
+        <i class="fas fa-boxes"></i>
+        Ver inventario
+    </a>
+</div>
+
+<!-- Sprint 7: alertas accionables -->
+<div class="alertas-grid">
+    <a class="alerta-card alerta-warning" href="{{ url_for('solicitudes') }}">
+        <div class="alerta-icono"><i class="fas fa-inbox"></i></div>
+        <div>
+            <h3>Solicitudes por atender</h3>
+            <p>Proyectos en estado «solicitado»</p>
+        </div>
+        <span class="alerta-numero">{{ total_solicitudes }}</span>
+    </a>
+    <a class="alerta-card alerta-danger" href="{{ url_for('inventario') }}#prediccion">
+        <div class="alerta-icono"><i class="fas fa-triangle-exclamation"></i></div>
+        <div>
+            <h3>Inventario bajo mínimo</h3>
+            <p>{{ resumen_inventario.riesgo }} en riesgo por consumo ·
+                {{ resumen_inventario.sin_historial }} sin historial</p>
+        </div>
+        <span class="alerta-numero">{{ materiales_bajo_minimo }}</span>
+    </a>
+</div>
+
+<!-- KPIs -->
 <div class="kpi-section">
     <div class="kpi-row">
-        <!-- Clientes -->
         <div class="kpi-card kpi-unified">
             <div class="kpi-icon">
                 <i class="fas fa-users"></i>
@@ -22,9 +68,8 @@
             </div>
         </div>
 
-        <!-- Solicitudes online (Sprint 4 - PB-14) -->
         <a href="{{ url_for('solicitudes') }}" class="kpi-card kpi-unified"
-            style="display:block; text-decoration:none; color:inherit;">
+            style="text-decoration:none; color:inherit;">
             <div class="kpi-icon">
                 <i class="fas fa-inbox"></i>
             </div>
@@ -34,7 +79,6 @@
             </div>
         </a>
 
-        <!-- Proyectos -->
         <div class="kpi-card kpi-unified">
             <div class="kpi-icon">
                 <i class="fas fa-project-diagram"></i>
@@ -45,7 +89,6 @@
             </div>
         </div>
 
-        <!-- Planos -->
         <div class="kpi-card kpi-unified">
             <div class="kpi-icon">
                 <i class="fas fa-file-alt"></i>
@@ -56,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Insumos -->
         <div class="kpi-card kpi-unified">
             <div class="kpi-icon">
                 <i class="fas fa-boxes"></i>
@@ -67,23 +109,22 @@
             </div>
         </div>
 
-        <!-- Facturas -->
         <div class="kpi-card kpi-unified">
             <div class="kpi-icon">
                 <i class="fas fa-file-invoice-dollar"></i>
             </div>
             <div class="kpi-content">
-                <h3>Facturas</h3>
+                <h3>Facturado</h3>
                 <span class="kpi-number">$ {{ "%.0f"|format(total_facturas) }}</span>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Información adicional -->
+<!-- Proyectos recientes -->
 <div class="dashboard-info">
     <div class="info-section">
-        <h3>Proyectos Recientes</h3>
+        <h3><i class="fas fa-folder-open"></i> Proyectos recientes</h3>
         <div class="info-list">
             {% if proyectos_recientes %}
                 {% for proyecto in proyectos_recientes %}
@@ -91,7 +132,8 @@
                     <i class="fas fa-folder"></i>
                     <div class="info-content">
                         <strong>{{ proyecto.nombre_proyecto }}</strong>
-                        <span>{{ proyecto.cliente.nombre_completo }}</span>
+                        <span>{{ proyecto.cliente.nombre_completo }} ·
+                            {{ proyecto.fecha_solicitud.strftime('%d/%m/%Y') }}</span>
                     </div>
                     <span class="info-status status-{{ proyecto.estado }}">{{ proyecto.estado.replace('_', ' ').title() }}</span>
                 </div>
@@ -106,4 +148,3 @@
     </div>
 </div>
 {% endblock %}
-

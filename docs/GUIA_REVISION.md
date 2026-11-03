@@ -19,6 +19,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 | Sprint 4 | PB-14, PB-15 | `ed61abe` | Solicitud de servicio online **sin cuenta** (`/solicitud`) con reutilización de cliente por email, honeypot y límite por IP; bandeja `/solicitudes` y contador en dashboard. Ficha de cliente 360° (`/clientes/<id>`) con historial, totales facturado/pagado/pendiente, búsqueda por teléfono, paginación e integridad al eliminar. Planificación SDD en `specs/004-solicitudes-clientes/` y detalle en `docs/SPRINT_4.md`. |
 | Sprint 5 | PB-10 | `2c21702` | Cotización automática (Fase 2, v1 determinista): botón «Calcular automáticamente» en el formulario de cotización; área de impresión de PDF (`pypdf`) y DXF (lector de `$EXTMIN/$EXTMAX`), precio con desglose (área × tarifa + insumos + margen), archivo del proyecto con respaldo al adjunto de la solicitud. Sin cambios de esquema ni servicios externos. Detalle en `docs/SPRINT_5.md` y `specs/005-cotizacion-automatica/`. |
 | Sprint 6 | PB-11, PB-13 | `f2d13c4` | Inventario predictivo y calidad de planos (Fase 2): panel de reabastecimiento con velocidad de consumo real, punto de reorden, días restantes, compra sugerida y silencio persistente; checklist de calidad del plano (formato real, DPI sin Pillow, tamaño de página) que informa sin bloquear. Detalle en `docs/SPRINT_6.md` y `specs/006-inventario-calidad/`. |
+| Rediseño | — | `PENDIENTE` | Identidad visual «blueprint»: design tokens, sidebar agrupado por flujos con badges, breadcrumb, dashboard admin accionable, línea de estado del cliente, landing/login renovados, tablas y formularios consistentes y menú móvil. Solo presentación, sin cambios de lógica. Detalle en `docs/DISENO.md` y `specs/007-rediseno-blueprint/`. |
 | Higiene | — | `1dd63e5`, `eebb640`, `15e8049`, `12ed757` | Corrección de credenciales en la documentación y sincronización de ramas (`main` = producción, `develop` = desarrollo). |
 
 ## 2. Documentos de evidencia
@@ -28,9 +29,11 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 - [`docs/SPRINT_4.md`](../docs/SPRINT_4.md) — solicitudes online, ficha de cliente, decisiones y verificación (29 comprobaciones).
 - [`docs/SPRINT_5.md`](../docs/SPRINT_5.md) — cotización automática (PB-10), fórmula, decisiones y verificación (26 comprobaciones).
 - [`docs/SPRINT_6.md`](../docs/SPRINT_6.md) — inventario predictivo y calidad de planos (PB-11/PB-13), verificación (31 comprobaciones).
+- [`docs/DISENO.md`](../docs/DISENO.md) — sistema de diseño «blueprint», componentes y navegación.
 - [`specs/004-solicitudes-clientes/`](../specs/004-solicitudes-clientes/) — especificación, plan técnico y tareas del Sprint 4 (SDD).
 - [`specs/005-cotizacion-automatica/`](../specs/005-cotizacion-automatica/) — especificación, plan técnico y tareas del Sprint 5 (SDD).
 - [`specs/006-inventario-calidad/`](../specs/006-inventario-calidad/) — especificación, plan técnico y tareas del Sprint 6 (SDD).
+- [`specs/007-rediseno-blueprint/`](../specs/007-rediseno-blueprint/) — especificación, plan técnico y tareas del rediseño (SDD).
 - [`docs/MIGRACION_MYSQL.md`](../docs/MIGRACION_MYSQL.md) — arquitectura y pasos de la migración a MySQL.
 
 ## 3. Ejecutar la aplicación en local
