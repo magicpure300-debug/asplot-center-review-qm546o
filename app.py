@@ -14,6 +14,7 @@ from cachear import cache, cachear_ruta  # Sprint 3 - PB-06
 import cotizador_auto  # Sprint 5 - PB-10 (cubicacion y cotizacion automatica)
 import inventario_predictivo  # Sprint 6 - PB-11 (prediccion de reabastecimiento)
 import calidad_planos  # Sprint 6 - PB-13 (calidad de planos)
+import copilot as copilot_modulo  # Sprint 7 - PB-12 (copilot NL -> SQL)
 import io
 import gzip
 import json
@@ -130,6 +131,7 @@ def create_app():
         'crear_factura': ('Facturación', 'Nueva factura'),
         'ver_factura': ('Facturación', 'Factura'),
         'reportes': ('Facturación', 'Reportes'),
+        'copilot': ('Administración', 'Copilot'),
         'usuarios': ('Administración', 'Usuarios'),
         'crear_usuario': ('Administración', 'Nuevo usuario'),
         'editar_usuario': ('Administración', 'Editar usuario'),
@@ -1982,6 +1984,70 @@ def create_app():
     @cachear_ruta(ttl=120)  # Sprint 3 - PB-06: caché 120 s por usuario
     def reportes():
         return render_template('reportes.html')
+
+    # =============================================================================
+    # COPILOT ADMINISTRATIVO NL -> SQL (Sprint 7 - PB-12, solo admin)
+    # =============================================================================
+
+    _motor_copilot = [None]  # cache perezoso del motor de solo lectura
+
+    def _ejecutar_consulta_copilot(sql, params):
+        """
+        Ejecuta un SELECT ya validado por copilot.validar_sql y devuelve
+        (columnas, filas). Usa COPILOT_DATABASE_URL (usuario de solo lectura)
+        si esta configurada; si no, la conexion principal de la aplicacion.
+        """
+        from sqlalchemy import text, create_engine
+        max_filas = app.config.get('COPILOT_MAX_FILAS') or 200
+        if (app.config.get('COPILOT_DATABASE_URL')
+                and _motor_copilot[0] is None):
+            _motor_copilot[0] = create_engine(
+                app.config['COPILOT_DATABASE_URL'], pool_pre_ping=True)
+        if _motor_copilot[0] is not None:
+            with _motor_copilot[0].connect() as conexion:
+                resultado = conexion.execute(text(sql), params or {})
+                columnas = list(resultado.keys())
+                filas = resultado.fetchmany(max_filas)
+                return columnas, [list(fila) for fila in filas]
+        resultado = db.session.execute(text(sql), params or {})
+        columnas = list(resultado.keys())
+        filas = resultado.fetchmany(max_filas)
+        return columnas, [list(fila) for fila in filas]
+
+    @app.route('/copilot', methods=['GET', 'POST'])
+    @login_required
+    def copilot():
+        """
+        Copilot administrativo (PB-12): traduce preguntas en lenguaje
+        natural a consultas SQL de solo lectura. Solo administradores.
+        """
+        # El copilot expone metricas financieras: exclusivo del admin
+        if not current_user.es_admin:
+            flash('El copilot solo está disponible para el administrador.',
+                  'error')
+            return redirect(url_for('dashboard'))
+
+        resultado = None
+        if request.method == 'POST':
+            pregunta = (request.form.get('pregunta') or '').strip()
+            resultado = copilot_modulo.responder(
+                pregunta, _ejecutar_consulta_copilot, app.config)
+            # Auditoria: cada consulta queda en el log de la aplicacion
+            app.logger.info(
+                'COPILOT usuario=%s fuente=%s filas=%d pregunta=%r sql=%r',
+                current_user.nombre_usuario,
+                resultado.get('fuente') or '-',
+                len(resultado.get('filas') or []),
+                pregunta, resultado.get('sql') or '')
+
+        plantillas = [{'id': p['id'], 'etiqueta': p['etiqueta'],
+                       'ejemplo': p['ejemplo']}
+                      for p in copilot_modulo.PLANTILLAS]
+        return render_template(
+            'copilot.html',
+            resultado=resultado,
+            plantillas=plantillas,
+            ia_configurada=bool(app.config.get('COPILOT_API_KEY')))
     
     @app.route('/reportes/generar', methods=['POST'])
     @login_required

@@ -97,10 +97,15 @@ mayor consumo de insumos el mes pasado y su margen"*),
   para este despliegue).
 
 ### Criterios de aceptación
-- [ ] Sin API configurada, el módulo responde con las plantillas de respaldo.
-- [ ] Con API configurada, traduce consultas de lenguaje natural a SQL válido y limitado.
-- [ ] Toda consulta ejecutada es de solo lectura y queda registrada en log.
-- [ ] La respuesta incluye la interpretación (qué entendió) y el dato analítico.
+- [x] Sin API configurada, el módulo responde con las plantillas de respaldo.
+- [x] Con API configurada, traduce consultas de lenguaje natural a SQL válido y limitado.
+- [x] Toda consulta ejecutada es de solo lectura y queda registrada en log.
+- [x] La respuesta incluye la interpretación (qué entendió) y el dato analítico.
+
+> **v1 implementada en el Sprint 7** (`specs/008-copilot-nl-sql/`,
+> `docs/SPRINT_7.md`): página `/copilot` solo para admin, 8 plantillas sin
+> API, proveedor OpenAI-compatible opcional, validador de SQL de solo lectura
+> con catálogo cerrado de tablas y auditoría en el log.
 
 ---
 

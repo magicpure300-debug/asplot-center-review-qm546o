@@ -93,6 +93,23 @@ class Config:
         os.environ.get('INVENTARIO_SILENCIO_DIAS', '7'))
     CALIDAD_DPI_MINIMO = float(os.environ.get('CALIDAD_DPI_MINIMO', '150'))
 
+    # =================================================================
+    # SPRINT 7 (PB-12) - Copilot administrativo NL->SQL
+    # LLM opcional: cualquier API compatible con OpenAI. Sin API key
+    # el copilot responde con 8 plantillas deterministas (solo lectura).
+    # =================================================================
+    COPILOT_BASE_URL = os.environ.get(
+        'COPILOT_BASE_URL', 'https://api.openai.com/v1').rstrip('/')
+    COPILOT_MODEL = os.environ.get('COPILOT_MODEL', 'gpt-4o-mini')
+    COPILOT_API_KEY = os.environ.get('COPILOT_API_KEY') or None
+    # Timeout en segundos para la llamada al LLM
+    COPILOT_TIMEOUT = float(os.environ.get('COPILOT_TIMEOUT', '15'))
+    # Maximo de filas devueltas por cualquier consulta del copilot
+    COPILOT_MAX_FILAS = int(os.environ.get('COPILOT_MAX_FILAS', '200'))
+    # Conexion opcional de solo lectura (usuario MySQL sin permisos de
+    # escritura); si no se define se usa la conexion principal
+    COPILOT_DATABASE_URL = os.environ.get('COPILOT_DATABASE_URL') or None
+
     @staticmethod
     def init_app(app):
         """Inicializar configuración específica de la aplicación"""

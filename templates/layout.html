@@ -158,6 +158,13 @@
                                 Usuarios
                             </a>
                         </li>
+                        <li class="nav-item {% if request.endpoint == 'copilot' %}active{% endif %}">
+                            <a href="{{ url_for('copilot') }}"
+                                {% if request.endpoint == 'copilot' %}aria-current="page"{% endif %}>
+                                <i class="fas fa-robot"></i>
+                                Copilot
+                            </a>
+                        </li>
                     </ul>
                 </div>
                 {% endif %}

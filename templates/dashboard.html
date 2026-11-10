@@ -32,6 +32,12 @@
         <i class="fas fa-boxes"></i>
         Ver inventario
     </a>
+    {% if current_user.es_admin %}
+    <a class="accion-rapida" href="{{ url_for('copilot') }}">
+        <i class="fas fa-robot"></i>
+        Preguntar al copilot
+    </a>
+    {% endif %}
 </div>
 
 <!-- Sprint 7: alertas accionables -->

@@ -1,0 +1,167 @@
+{% extends "layout.html" %}
+
+{% block title %}Copilot - As Plot Center{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Copilot administrativo</h1>
+        <p>Pregunta métricas del negocio en lenguaje natural</p>
+    </div>
+    <span class="status-badge copilot-modo {% if ia_configurada %}status-en_progreso{% else %}status-cotizado{% endif %}">
+        {% if ia_configurada %}
+        <i class="fas fa-robot"></i> IA configurada
+        {% else %}
+        <i class="fas fa-list-check"></i> Modo plantillas
+        {% endif %}
+    </span>
+</div>
+
+{% if not ia_configurada %}
+<div class="alert alert-warning">
+    <i class="fas fa-circle-info"></i>
+    No hay API de IA configurada: el copilot responde con preguntas
+    frecuentes predefinidas sobre los datos reales de la base.
+    Configura <code>COPILOT_API_KEY</code> para habilitar preguntas libres.
+</div>
+{% endif %}
+
+<!-- Formulario de pregunta -->
+<div class="form-container copilot-caja">
+    <form method="POST" class="copilot-form">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="pregunta">Tu pregunta</label>
+            <div class="copilot-input">
+                <input type="text" id="pregunta" name="pregunta"
+                    placeholder="Ej.: ¿Cuál fue el margen de cada proyecto?"
+                    value="{{ resultado.pregunta if resultado else '' }}"
+                    autocomplete="off" required>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Preguntar
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Chips de preguntas frecuentes -->
+    <div class="copilot-chips">
+        {% for plantilla in plantillas %}
+        <form method="POST" class="copilot-chip-form">
+            <input type="hidden" name="pregunta" value="{{ plantilla.ejemplo }}">
+            <button type="submit" class="copilot-chip" title="{{ plantilla.ejemplo }}">
+                <i class="fas fa-plus"></i> {{ plantilla.etiqueta }}
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Resultado -->
+{% if resultado %}
+<div class="info-section copilot-resultado">
+
+    {% if resultado.aviso %}
+    <div class="flash-message flash-error copilot-aviso">
+        <i class="fas fa-triangle-exclamation"></i>
+        {{ resultado.aviso }}Se respondió con la plantilla más cercana.
+    </div>
+    {% endif %}
+
+    {% if resultado.ok %}
+    <div class="copilot-cabecera">
+        <span class="status-badge {% if resultado.fuente == 'ia' %}status-en_progreso{% else %}status-cotizado{% endif %}">
+            {% if resultado.fuente == 'ia' %}
+            <i class="fas fa-robot"></i> Respondido por IA
+            {% else %}
+            <i class="fas fa-list-check"></i> Plantilla
+            {% endif %}
+        </span>
+        <div class="copilot-interpretacion">
+            <i class="fas fa-lightbulb"></i>
+            <div>
+                <strong>Qué entendió el copilot</strong>
+                <p>{{ resultado.interpretacion }}</p>
+            </div>
+        </div>
+        <details class="copilot-sql">
+            <summary><i class="fas fa-code"></i> Ver SQL ejecutado</summary>
+            <pre>{{ resultado.sql }}</pre>
+        </details>
+    </div>
+
+    {% if resultado.filas %}
+    <div class="table-responsive">
+        <table class="data-table copilot-tabla">
+            <thead>
+                <tr>
+                    {% for columna in resultado.columnas %}
+                    <th>{{ columna.replace('_', ' ').title() }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in resultado.filas %}
+                <tr>
+                    {% for valor in fila %}
+                    <td>{{ valor if valor is not none else '—' }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="copilot-nota">
+        <i class="fas fa-table-columns"></i>
+        {{ resultado.filas|length }} fila{{ 's' if resultado.filas|length != 1 }}
+        {% if resultado.filas|length >= 100 %}(resultado limitado){% endif %}
+    </p>
+    {% else %}
+    <div class="no-data">
+        <i class="fas fa-database"></i>
+        <p>La consulta se ejecutó correctamente pero no devolvió datos.</p>
+    </div>
+    {% endif %}
+
+    {% elif resultado.mensaje %}
+    <div class="no-data copilot-sugerencias">
+        <i class="fas fa-comment-dots"></i>
+        <p>{{ resultado.mensaje }}</p>
+        <div class="copilot-chips copilot-chips-centrado">
+            {% for etiqueta in resultado.sugerencias %}
+            <span class="copilot-chip copilot-chip-inerte">
+                <i class="fas fa-tag"></i> {{ etiqueta }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="info-section copilot-ayuda">
+    <h3><i class="fas fa-circle-question"></i> Cómo funciona</h3>
+    <div class="info-list">
+        <div class="info-item">
+            <i class="fas fa-1"></i>
+            <div class="info-content">
+                <strong>Escribe una pregunta o elige un tema</strong>
+                <span>Los botones de arriba lanzan preguntas frecuentes listas para usar.</span>
+            </div>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-2"></i>
+            <div class="info-content">
+                <strong>El copilot traduce tu pregunta a SQL</strong>
+                <span>Con IA configurada interpreta preguntas libres; sin IA usa las plantillas predefinidas.</span>
+            </div>
+        </div>
+        <div class="info-item">
+            <i class="fas fa-3"></i>
+            <div class="info-content">
+                <strong>Respuesta con datos reales</strong>
+                <span>Recibes la interpretación, el SQL ejecutado y la tabla de resultados. Solo lectura: nunca modifica la base.</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
