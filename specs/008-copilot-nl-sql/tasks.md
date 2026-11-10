@@ -52,9 +52,13 @@
     hizo → evidencia), `GUIA_REVISION.md`, `BACKLOG_IA.md` (PB-12 marcado).
   - Hecho: anexo con tabla completa y enlaces a specs, rutas y pruebas.
 
-- [ ] **T8. Despliegue y verificación en el G60**
+- [x] **T8. Despliegue y verificación en el G60**
   - RF: RNF portabilidad.
   - Push a `origin`/`review`, copia al G60, reinicio y prueba real del modo
     plantillas (y del modo IA si hay clave temporal).
-  - Hecho: `/asplot/copilot` responde 200 con sesión admin; un chip devuelve
-    tabla; suites en verde en el teléfono.
+  - Hecho: suite 63/63 en el teléfono (Python 3.14); `/asplot/copilot`
+    responde 200 con sesión admin; las 8 plantillas devuelven tabla con datos
+    sembrados (`scripts/demo_datos.py`): facturación del mes 646,00 excluyendo
+    la factura cancelada, 3 clientes en el top, 3 materiales en riesgo; una
+    pregunta reformulada resuelve la plantilla correcta y una pregunta sin
+    coincidencia muestra las sugerencias sin ejecutar SQL.

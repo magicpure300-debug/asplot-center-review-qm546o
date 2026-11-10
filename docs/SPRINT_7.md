@@ -92,6 +92,11 @@ Suite `test_sprint7.py` (copia limpia con SQLite propio):
 - Copiado al G60: `copilot.py`, `app.py`, `config.py`, `style.css`,
   `templates/copilot.html`, `layout.html`, `dashboard.html`.
 - Reinicio del servicio y prueba del modo plantillas por LAN y túnel.
+- **Datos de demostración:** `scripts/demo_datos.py` siembra (solo si no hay
+  facturas) clientes, proyectos en distintos estados, planos por tipo,
+  facturas del mes —incluida una cancelada que el copilot debe excluir— y un
+  material bajo el mínimo. Así la demo del G60 muestra cifras reales:
+  facturación del mes 646,00; 3 clientes en el top; 3 materiales en riesgo.
 - `docs/ANEXO_IA.md` recoge las evidencias para el ERS.
 
 ## Decisiones técnicas
