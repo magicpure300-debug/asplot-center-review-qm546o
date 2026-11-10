@@ -1,4 +1,4 @@
-# ASPLOT CENTER — Guía de revisión académica
+﻿# ASPLOT CENTER — Guía de revisión académica
 
 > Repositorio de solo lectura (temporal). Aquí puedes ver el avance real del
 > proyecto a través de los commits, la documentación de cada sprint y ejecutar
@@ -20,7 +20,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 | Sprint 5 | PB-10 | `2c21702` | Cotización automática (Fase 2, v1 determinista): botón «Calcular automáticamente» en el formulario de cotización; área de impresión de PDF (`pypdf`) y DXF (lector de `$EXTMIN/$EXTMAX`), precio con desglose (área × tarifa + insumos + margen), archivo del proyecto con respaldo al adjunto de la solicitud. Sin cambios de esquema ni servicios externos. Detalle en `docs/SPRINT_5.md` y `specs/005-cotizacion-automatica/`. |
 | Sprint 6 | PB-11, PB-13 | `f2d13c4` | Inventario predictivo y calidad de planos (Fase 2): panel de reabastecimiento con velocidad de consumo real, punto de reorden, días restantes, compra sugerida y silencio persistente; checklist de calidad del plano (formato real, DPI sin Pillow, tamaño de página) que informa sin bloquear. Detalle en `docs/SPRINT_6.md` y `specs/006-inventario-calidad/`. |
 | Rediseño | - | `244be29` | Identidad visual «blueprint»: design tokens, sidebar agrupado por flujos con badges, breadcrumb, dashboard admin accionable, línea de estado del cliente, landing/login renovados, tablas y formularios consistentes y menú móvil. Solo presentación, sin cambios de lógica. Detalle en `docs/DISENO.md` y `specs/007-rediseno-blueprint/`. |
-| Sprint 7 | PB-12 | `PENDIENTE` | Copilot administrativo NL→SQL (Fase 2): página `/copilot` solo para admin con 8 plantillas deterministas sin API, proveedor OpenAI-compatible opcional, validador de SQL de solo lectura con catálogo cerrado de tablas, interpretación + SQL + tabla de resultados y auditoría en el log. Detalle en `docs/SPRINT_7.md`, `docs/ANEXO_IA.md` y `specs/008-copilot-nl-sql/`. |
+| Sprint 7 | PB-12 | `2a2a2b2` | Copilot administrativo NL→SQL (Fase 2): página `/copilot` solo para admin con 8 plantillas deterministas sin API, proveedor OpenAI-compatible opcional, validador de SQL de solo lectura con catálogo cerrado de tablas, interpretación + SQL + tabla de resultados y auditoría en el log. Detalle en `docs/SPRINT_7.md`, `docs/ANEXO_IA.md` y `specs/008-copilot-nl-sql/`. |
 | Higiene | — | `1dd63e5`, `eebb640`, `15e8049`, `12ed757` | Corrección de credenciales en la documentación y sincronización de ramas (`main` = producción, `develop` = desarrollo). |
 
 ## 2. Documentos de evidencia
