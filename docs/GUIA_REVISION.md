@@ -32,6 +32,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 - [`docs/SPRINT_6.md`](../docs/SPRINT_6.md) - inventario predictivo y calidad de planos (PB-11/PB-13), verificación (31 comprobaciones).
 - [`docs/SPRINT_7.md`](../docs/SPRINT_7.md) - copilot administrativo NL→SQL (PB-12), seguridad y verificación (63 comprobaciones).
 - [`docs/ANEXO_IA.md`](../docs/ANEXO_IA.md) - evidencias del ERS: correcciones de concepto y estado de los cuatro agentes de IA.
+- [`docs/GUION_DEFENSA.md`](../docs/GUION_DEFENSA.md) - recorrido de demo, qué mostrar en cada historia y respuestas a preguntas probables.
 - [`docs/DISENO.md`](../docs/DISENO.md) - sistema de diseño «blueprint», componentes y navegación.
 - [`specs/004-solicitudes-clientes/`](../specs/004-solicitudes-clientes/) — especificación, plan técnico y tareas del Sprint 4 (SDD).
 - [`specs/005-cotizacion-automatica/`](../specs/005-cotizacion-automatica/) — especificación, plan técnico y tareas del Sprint 5 (SDD).
