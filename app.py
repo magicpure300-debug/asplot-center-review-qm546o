@@ -15,6 +15,7 @@ import cotizador_auto  # Sprint 5 - PB-10 (cubicacion y cotizacion automatica)
 import inventario_predictivo  # Sprint 6 - PB-11 (prediccion de reabastecimiento)
 import calidad_planos  # Sprint 6 - PB-13 (calidad de planos)
 import copilot as copilot_modulo  # Sprint 7 - PB-12 (copilot NL -> SQL)
+import validacion_telefono as telefonos  # Sprint 8 - validacion de lineas
 import io
 import gzip
 import json
@@ -222,7 +223,7 @@ def create_app():
                 nombre='Cliente',
                 apellido='Ejemplo',
                 email='ejemplo.sistema@asplot.com',
-                telefono='555-0000',
+                telefono='04141234567',
                 direccion='Dirección de ejemplo'
             )
             db.session.add(cliente_ejemplo)
@@ -371,6 +372,11 @@ def create_app():
             apellido = request.form['apellido']
             email = request.form['email']
             telefono = request.form['telefono']
+            telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+                telefono)
+            if not telefono_ok:
+                flash('Teléfono inválido: %s' % telefono_error, 'error')
+                return redirect(url_for('registro'))
             direccion = request.form.get('direccion', '')
             password = request.form['password']
             password_confirm = request.form['password_confirm']
@@ -531,11 +537,16 @@ def create_app():
     @login_required
     def crear_cliente():
         if request.method == 'POST':
+            telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+                request.form['telefono'])
+            if not telefono_ok:
+                flash('Teléfono inválido: %s' % telefono_error, 'error')
+                return redirect(url_for('crear_cliente'))
             cliente = Cliente(
                 nombre=request.form['nombre'],
                 apellido=request.form['apellido'],
                 email=request.form['email'],
-                telefono=request.form['telefono'],
+                telefono=telefono,
                 direccion=request.form['direccion']
             )
             db.session.add(cliente)
@@ -551,10 +562,15 @@ def create_app():
         cliente = Cliente.query.get_or_404(id)
         
         if request.method == 'POST':
+            telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+                request.form['telefono'])
+            if not telefono_ok:
+                flash('Teléfono inválido: %s' % telefono_error, 'error')
+                return redirect(url_for('editar_cliente', id=id))
             cliente.nombre = request.form['nombre']
             cliente.apellido = request.form['apellido']
             cliente.email = request.form['email']
-            cliente.telefono = request.form['telefono']
+            cliente.telefono = telefono
             cliente.direccion = request.form['direccion']
             db.session.commit()
             flash('Cliente actualizado exitosamente', 'success')
@@ -699,6 +715,14 @@ def create_app():
         ):
             if not datos[campo]:
                 errores[campo] = f'{etiqueta} es obligatorio.'
+
+        if datos['telefono'] and 'telefono' not in errores:
+            telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+                datos['telefono'])
+            if telefono_ok:
+                datos['telefono'] = telefono
+            else:
+                errores['telefono'] = telefono_error
 
         if not datos['email']:
             errores['email'] = 'El email es obligatorio.'
@@ -2242,12 +2266,18 @@ def create_app():
                 flash('El nombre de usuario ya está en uso', 'error')
                 return redirect(url_for('crear_usuario'))
             
+            telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+                request.form.get('telefono', ''), obligatorio=False)
+            if not telefono_ok:
+                flash('Teléfono inválido: %s' % telefono_error, 'error')
+                return redirect(url_for('crear_usuario'))
+            
             usuario = Usuario(
                 nombre_usuario=request.form['nombre_usuario'],
                 email=request.form['email'],
                 rol=request.form['rol'],
                 nombre_completo=request.form.get('nombre_completo', ''),
-                telefono=request.form.get('telefono', ''),
+                telefono=telefono,
                 direccion=request.form.get('direccion', ''),
                 activo=True
             )
@@ -2283,7 +2313,12 @@ def create_app():
             usuario.email = request.form['email']
             usuario.rol = request.form['rol']
             usuario.nombre_completo = request.form.get('nombre_completo', '')
-            usuario.telefono = request.form.get('telefono', '')
+            telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+                request.form.get('telefono', ''), obligatorio=False)
+            if not telefono_ok:
+                flash('Teléfono inválido: %s' % telefono_error, 'error')
+                return redirect(url_for('editar_usuario', id=id))
+            usuario.telefono = telefono
             usuario.direccion = request.form.get('direccion', '')
             
             if request.form.get('password'):
@@ -2322,10 +2357,15 @@ def create_app():
     @login_required
     def actualizar_configuracion():
         usuario = current_user
+        telefono_ok, telefono, telefono_error = telefonos.validar_telefono(
+            request.form.get('telefono', ''), obligatorio=False)
+        if not telefono_ok:
+            flash('Teléfono inválido: %s' % telefono_error, 'error')
+            return redirect(url_for('configuracion'))
         usuario.nombre_usuario = request.form['nombre_usuario']
         usuario.email = request.form['email']
         usuario.nombre_completo = request.form.get('nombre_completo', '')
-        usuario.telefono = request.form.get('telefono', '')
+        usuario.telefono = telefono
         usuario.direccion = request.form.get('direccion', '')
         
         if request.form.get('password'):

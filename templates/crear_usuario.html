@@ -61,8 +61,12 @@
                 
                 <div class="form-group">
                     <label for="telefono">Teléfono</label>
-                    <input type="tel" id="telefono" name="telefono" 
-                           class="form-control">
+                    <input type="tel" id="telefono" name="telefono"
+                           class="form-control" maxlength="20" inputmode="tel"
+                           autocomplete="tel" placeholder="0414-1917498">
+                    <small class="campo-ayuda" data-telefono-ayuda>
+                        Opcional. Formato: 0414-1917498 (11 dígitos).
+                    </small>
                 </div>
             </div>
             
@@ -85,4 +89,7 @@
         </div>
     </form>
 </div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/telefono.js') }}"></script>
 {% endblock %}

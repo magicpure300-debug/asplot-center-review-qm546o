@@ -206,8 +206,12 @@
                     <div class="form-group">
                         <label for="telefono">Teléfono *</label>
                         <input type="tel" name="telefono" id="telefono" maxlength="20"
+                            inputmode="tel" autocomplete="tel" placeholder="0414-1917498"
                             value="{{ datos.get('telefono', '') }}" required>
                         {% if errores.telefono %}<div class="campo-error">{{ errores.telefono }}</div>{% endif %}
+                        <small class="campo-ayuda" data-telefono-ayuda>
+                            Formato: 0414-1917498 (11 dígitos) o +58 414 1917498.
+                        </small>
                     </div>
                 </div>
 
@@ -267,6 +271,7 @@
             </form>
         </div>
     </main>
+    <script src="{{ url_for('static', filename='js/telefono.js') }}"></script>
 </body>
 
 </html>

@@ -1862,6 +1862,27 @@ textarea:focus-visible {
     .copilot-caja { padding: 1rem; }
 }
 
+/* ---------- Validacion de telefonos (Sprint 8) ---------- */
+.campo-ayuda {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.campo-ayuda-ok { color: var(--success, #15803d); }
+
+.campo-ayuda-error {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+input[name="telefono"]:invalid:not(:placeholder-shown) {
+    border-color: var(--danger);
+}
+
+
 
 
 

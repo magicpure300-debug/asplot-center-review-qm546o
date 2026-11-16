@@ -21,6 +21,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 | Sprint 6 | PB-11, PB-13 | `f2d13c4` | Inventario predictivo y calidad de planos (Fase 2): panel de reabastecimiento con velocidad de consumo real, punto de reorden, días restantes, compra sugerida y silencio persistente; checklist de calidad del plano (formato real, DPI sin Pillow, tamaño de página) que informa sin bloquear. Detalle en `docs/SPRINT_6.md` y `specs/006-inventario-calidad/`. |
 | Rediseño | - | `244be29` | Identidad visual «blueprint»: design tokens, sidebar agrupado por flujos con badges, breadcrumb, dashboard admin accionable, línea de estado del cliente, landing/login renovados, tablas y formularios consistentes y menú móvil. Solo presentación, sin cambios de lógica. Detalle en `docs/DISENO.md` y `specs/007-rediseno-blueprint/`. |
 | Sprint 7 | PB-12 | `2a2a2b2` | Copilot administrativo NL→SQL (Fase 2): página `/copilot` solo para admin con 8 plantillas deterministas sin API, proveedor OpenAI-compatible opcional, validador de SQL de solo lectura con catálogo cerrado de tablas, interpretación + SQL + tabla de resultados y auditoría en el log. Detalle en `docs/SPRINT_7.md`, `docs/ANEXO_IA.md` y `specs/008-copilot-nl-sql/`. |
+| Sprint 8 | PB-16 | `PENDIENTE` | Validación de teléfonos de Venezuela en las 7 rutas de escritura: 11 dígitos, prefijos móviles vigentes (0412/0414/0415/0416/0422/0424/0426), códigos de área reales, rechazo de 0417/0418 y de áreas inexistentes, normalización a forma canónica y aviso en vivo con operadora/estado. Detalle en `docs/SPRINT_8.md` y `specs/009-validacion-telefonos/`. |
 | Higiene | — | `1dd63e5`, `eebb640`, `15e8049`, `12ed757` | Corrección de credenciales en la documentación y sincronización de ramas (`main` = producción, `develop` = desarrollo). |
 
 ## 2. Documentos de evidencia
@@ -31,6 +32,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 - [`docs/SPRINT_5.md`](../docs/SPRINT_5.md) — cotización automática (PB-10), fórmula, decisiones y verificación (26 comprobaciones).
 - [`docs/SPRINT_6.md`](../docs/SPRINT_6.md) - inventario predictivo y calidad de planos (PB-11/PB-13), verificación (31 comprobaciones).
 - [`docs/SPRINT_7.md`](../docs/SPRINT_7.md) - copilot administrativo NL→SQL (PB-12), seguridad y verificación (63 comprobaciones).
+- [`docs/SPRINT_8.md`](../docs/SPRINT_8.md) - validación de teléfonos de Venezuela, reglas, integración y verificación (61 comprobaciones).
 - [`docs/ANEXO_IA.md`](../docs/ANEXO_IA.md) - evidencias del ERS: correcciones de concepto y estado de los cuatro agentes de IA.
 - [`docs/GUION_DEFENSA.md`](../docs/GUION_DEFENSA.md) - recorrido de demo, qué mostrar en cada historia y respuestas a preguntas probables.
 - [`docs/DISENO.md`](../docs/DISENO.md) - sistema de diseño «blueprint», componentes y navegación.
@@ -39,6 +41,8 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 - [`specs/006-inventario-calidad/`](../specs/006-inventario-calidad/) — especificación, plan técnico y tareas del Sprint 6 (SDD).
 - [`specs/007-rediseno-blueprint/`](../specs/007-rediseno-blueprint/) - especificación, plan técnico y tareas del rediseño (SDD).
 - [`specs/008-copilot-nl-sql/`](../specs/008-copilot-nl-sql/) - especificación, plan técnico y tareas del copilot (SDD).
+- [`specs/009-validacion-telefonos/`](../specs/009-validacion-telefonos/) - especificación, plan técnico y tareas de la validación de teléfonos (SDD).
+- [`tests/`](../tests/) - suites automatizadas de los Sprints 5 a 8 y smoke de diseño.
 - [`docs/MIGRACION_MYSQL.md`](../docs/MIGRACION_MYSQL.md) — arquitectura y pasos de la migración a MySQL.
 
 ## 3. Ejecutar la aplicación en local
