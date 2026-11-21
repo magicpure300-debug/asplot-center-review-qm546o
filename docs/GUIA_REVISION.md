@@ -35,6 +35,7 @@ Historial completo: [commits de `develop`](https://github.com/magicpure300-debug
 - [`docs/SPRINT_8.md`](../docs/SPRINT_8.md) - validación de teléfonos de Venezuela, reglas, integración y verificación (61 comprobaciones).
 - [`docs/ANEXO_IA.md`](../docs/ANEXO_IA.md) - evidencias del ERS: correcciones de concepto y estado de los cuatro agentes de IA.
 - [`docs/GUION_DEFENSA.md`](../docs/GUION_DEFENSA.md) - recorrido de demo, qué mostrar en cada historia y respuestas a preguntas probables.
+- [`docs/CAPTURAS.md`](../docs/CAPTURAS.md) - capturas reales de la demo por historia (respaldo para la defensa).
 - [`docs/DISENO.md`](../docs/DISENO.md) - sistema de diseño «blueprint», componentes y navegación.
 - [`specs/004-solicitudes-clientes/`](../specs/004-solicitudes-clientes/) — especificación, plan técnico y tareas del Sprint 4 (SDD).
 - [`specs/005-cotizacion-automatica/`](../specs/005-cotizacion-automatica/) — especificación, plan técnico y tareas del Sprint 5 (SDD).

@@ -172,6 +172,7 @@ por sprint y qué documento leer para cada historia.
 | G60 apagado | Demo local: `python app.py` con SQLite + `scripts/demo_datos.py` |
 | Sin internet | Todo funciona: no hay llamadas externas en modo plantillas |
 | Datos vacíos | `scripts/demo_datos.py` (idempotente) y recargar |
+| Nada responde | Mostrar las capturas de `docs/capturas/` (una por historia) |
 | Pregunta del copilot no reconocida | Mostrar el mensaje con sugerencias: es el comportamiento esperado |
 
 ---
