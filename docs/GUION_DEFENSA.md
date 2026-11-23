@@ -179,10 +179,34 @@ por sprint y qué documento leer para cada historia.
 
 ## 8. Cierre honesto
 
-- **Entregado:** sistema completo, 7 sprints, 4 agentes v1, 120+ comprobaciones,
+- **Entregado:** sistema completo, 7 sprints, 4 agentes v1, 180+ comprobaciones,
   despliegue real y documentación SDD.
 - **Limitaciones conocidas:** el análisis de planos cubre PDF/DXF (DWG es v2);
   el copilot sin API solo responde las 8 preguntas frecuentes; la visión por
   computador es v2; la demo corre en un servidor doméstico.
 - **Mensaje final:** «Preferimos un sistema que funciona sin excusas: sin API,
   sin GPU y sin internet, y con el humano decidiendo siempre».
+
+---
+
+## 9. Ensayo automatizado
+
+Antes de defender, se puede recorrer el guion completo con un solo comando:
+
+```powershell
+$env:ASPLOT_ADMIN_PASSWORD="..."
+python scripts/ensayo_demo.py http://192.168.0.101:8000/asplot
+```
+
+Recorre portada, solicitud pública, login, dashboard, bandeja, clientes,
+ficha 360, cotización automática, inventario, calidad del plano, reportes y
+copilot; mide cada paso y falla si no aparece el contenido esperado.
+
+**Resultado de referencia (PC local, SQLite, 23-nov-2026):** 14/14 pasos en
+verde. En el G60 los tiempos son mayores (el teléfono tarda más en renderizar
+y en extraer PDF); el ensayo sirve para detectar roturas, no para cronometrar
+la defensa.
+
+> Si el G60 no responde, revisar primero la alimentación (batería/cargador)
+> y que el teléfono esté en la misma red; después la URL del túnel en
+> `~/links.estado.json`.
